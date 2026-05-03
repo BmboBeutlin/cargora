@@ -4,6 +4,51 @@
 
 ---
 
+## 2026-05-03 (Nacht 2) — Map-Fix + A* live + MP-Server-Stub fertig
+
+**Dauer:** ~30 Min (mit zwei Background-Agents) · **Claude-Modell:** Opus 4.7 (1M context)
+
+### Was passiert ist
+
+1. **A*-Pathfinding integriert** in `CabinetIsoScene` mit `src/world/pathfinding.ts`. LKW navigiert nun um Hindernisse, Pfad als Punkt-Linie sichtbar (oranger Endpunkt).
+2. **Patrick-Bug-Report:** "LKW kann nicht fahren, Layer passen nicht". Browser-Audit via Playwright durchgeführt — Wurzel-Ursache: `START_TILE = (6,4)` lag auf einem Gras-Tile innerhalb eines hohlen Schotter-Lager-Rings. Gras hat speedMod=0, also war der LKW von Beginn an festgesetzt.
+3. **Map komplett umgebaut** zu einem zusammenhängenden, überall befahrbaren Sandbox-Layout: Asphalt-Plattform mit Schotter- und Feldweg-Inseln, Gras nur als Außenrand. `START_TILE = (14,7)` zentral auf Asphalt.
+4. **Zwei Background-Agents parallel** liefen ohne Konflikte:
+   - **Sprite-Agent:** baut programmatische Pixel-Art-Sprites in `src/assets/sprites/` (Status: noch laufend bei Commit-Zeitpunkt)
+   - **Multiplayer-Agent:** Colyseus-Server-Stub in `server/` als isoliertes Subprojekt komplett fertig.
+
+### MP-Server-Stub — Details aus dem Agent-Report
+
+- **Pfad:** `C:\Users\patrick\cargora\server\` (eigenes Subprojekt, eigene `package.json`, eigenes `node_modules`)
+- **Port:** 2567 (überschreibbar via `PORT`-ENV)
+- **Stack:** Colyseus 0.16, @colyseus/schema 3.0, Express, WebSocketTransport
+- **Endpoints:** WebSocket-Game-Room "game" (max 8 Clients), `/health`-Endpoint, `/colyseus`-Monitor
+- **State-Schema:** `players: MapSchema<Player>`, `vehicles: MapSchema<Vehicle>`, `tick: number`
+- **Message-Handler:** `move-vehicle` mit Ownership-Check
+- **Default-Spawn:** Tile (6, 4) — sollte später mit Cargora-Map-Realität synchronisiert werden
+- **Verifikation:** TypeCheck clean, Server gestartet + Health-Check erfolgreich, Server beendet
+- **NICHT angebunden** an den Hauptprojekt-Client — bewusst, kommt als separater Integrations-Schritt
+
+### Tech-Lessons aus dem Server-Agent
+
+- `@colyseus/schema` braucht `experimentalDecorators` + `emitDecoratorMetadata` + `useDefineForClassFields: false` in `tsconfig.json` — letzteres wäre ein subtiler Stolperstein gewesen
+- Server isoliert als eigenes npm-Subprojekt (statt npm-Workspaces) → konsistent mit cueplex-Pattern (PersoSync/PowerSync/DevHub als getrennte Repos)
+
+### Was offen blieb
+
+- [ ] **Sprite-Agent abwarten** — läuft noch
+- [ ] **Sprite-Integration** — wenn Sprites fertig: in `CabinetIsoScene` einbauen, Polygone ersetzen
+- [ ] **MP-Client-Anbindung** — Colyseus-Client in `src/net/` integrieren, zwei Browser-Tabs testen. Default-Spawn-Position (6,4) im Server muss auf neue START_TILE (14,7) angepasst werden
+- [ ] **Hosting-Entscheidung MP-Server** — Patrick hat 8GB-Hetzner-Server angeboten. Für später, wenn Anbindung steht.
+
+### Lessons aus dieser Session
+
+- **Eigene Augen mit Playwright sind goldwert.** Patricks „LKW kann nicht fahren" wäre durch Bug-Description allein schwer zu lokalisieren gewesen. Screenshot + HUD-Anzeige („Speed-Modifier: 0%") haben das in 30 Sekunden geklärt.
+- **Map-Design hat semantische Komponente.** Ein Lager als „hohler Schotter-Ring mit Gras innen" macht weder visuell noch spielmechanisch Sinn. Lager-Tiles müssen befahrbar sein, sonst sind sie keine Lager. Pattern: Tile-Layouts müssen vor Implementation auf „kann der Spieler hier ankommen?" geprüft werden.
+- **Background-Agents mit klaren Datei-Grenzen funktionieren.** Sprite-Agent → `src/assets/sprites/`, MP-Agent → `server/`. Beide arbeiten parallel, kein Konflikt mit Hauptthread, kein Konflikt miteinander.
+
+---
+
 ## 2026-05-03 (Nacht) — Pivot zurück zu Phase-1-Modern, Era strukturell vorbereitet
 
 **Dauer:** ~30 Min · **Claude-Modell:** Opus 4.7 (1M context)

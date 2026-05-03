@@ -3,7 +3,7 @@
 
 export const TILE_SIZE = 32;
 export const MAP_W = 30;
-export const MAP_H = 22;
+export const MAP_H = 16;
 
 // Tile types — visual + speed properties.
 export const TileType = {
@@ -57,33 +57,27 @@ const ASCII_TO_TILE: Record<string, TileType> = {
   '.': 'gras',
 };
 
-// Productive Phase-1 map: small modern industrial district.
-// - Outer Asphalt-Ring as main highway
-// - Two inner districts: warehouse zone (Schotter) and rural connector (Feldweg)
-// - Wide grass surroundings for future Berge/Wasser/Wald-Erweiterung
+// Productive Phase-1 map: a coherent paved area with material variation.
+// EVERYTHING in the inner area is drivable. Only the outer 2-tile gras-frame is impassable.
+// Material patches (schotter, feldweg) are inside the asphalt platform — different speed modifiers,
+// but all reachable. This makes the map a sandbox where the player can drive anywhere.
 const MAP_ASCII: string[] = [
-  '..............................', // 0
-  '..AAAAAAAAAAAAAAAAAAAAAAAA....', // 1  — Hauptstraße West-Ost (oben)
-  '..A......................A....', // 2
-  '..A..ssssss......ssssss..A....', // 3  — Lagerbezirk West + Ost
-  '..A..s....s......s....s..A....', // 4
-  '..A..s....s......s....s..A....', // 5
-  '..A..ssssss......ssssss..A....', // 6
-  '..A......................A....', // 7
-  '..A...AAAAAAAAAAAAAAAA...A....', // 8  — Querstraße
-  '..A...A..............A...A....', // 9
-  '..A...A..ffffffffff..A...A....', // 10 — Feldweg-Innenhof
-  '..A...A..f........f..A...A....', // 11
-  '..A...A..f........f..A...A....', // 12
-  '..A...A..ffffffffff..A...A....', // 13
-  '..A...A..............A...A....', // 14
-  '..A...AAAAAAAAAAAAAAAA...A....', // 15
-  '..A......................A....', // 16
-  '..A......................A....', // 17
-  '..AAAAAAAAAAAAAAAAAAAAAAAA....', // 18 — Hauptstraße West-Ost (unten)
-  '..............................', // 19
-  '..............................', // 20
-  '..............................', // 21
+  '..............................', // 0  Gras-Rand
+  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 1  Asphalt-Plattform start
+  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 2
+  '..AAssssssAAAAAAAAAAffffffAA..', // 3  Schotter-Lager links + Feldweg rechts
+  '..AAssssssAAAAAAAAAAffffffAA..', // 4
+  '..AAssssssAAAAAAAAAAffffffAA..', // 5
+  '..AAssssssAAAAAAAAAAffffffAA..', // 6
+  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 7  Querverbindung Asphalt
+  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 8
+  '..AAAAAAAAffffffAAssssssAAAA..', // 9  Feldweg links + Schotter rechts
+  '..AAAAAAAAffffffAAssssssAAAA..', // 10
+  '..AAAAAAAAffffffAAssssssAAAA..', // 11
+  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 12
+  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 13 Asphalt-Plattform end
+  '..............................', // 14 Gras-Rand
+  '..............................', // 15
 ];
 
 // World data — central data structure that scales for future features.
@@ -118,5 +112,5 @@ export function buildMap(): TileType[][] {
   return buildWorld().tiles;
 }
 
-export const START_TILE = { x: 6, y: 4 };
+export const START_TILE = { x: 14, y: 7 }; // Mitte der Asphalt-Plattform, sicher befahrbar
 export const BASE_PIXELS_PER_MS = 0.15;

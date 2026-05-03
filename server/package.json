@@ -1,0 +1,27 @@
+{
+  "name": "cargora-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Colyseus multiplayer server stub for Cargora",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@colyseus/monitor": "^0.16.0",
+    "@colyseus/schema": "^3.0.0",
+    "@colyseus/tools": "^0.16.0",
+    "@colyseus/ws-transport": "^0.16.0",
+    "colyseus": "^0.16.0",
+    "express": "^4.21.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "~5.6.3"
+  }
+}
