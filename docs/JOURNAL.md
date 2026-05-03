@@ -113,7 +113,24 @@ Patrick hat zwischendurch einen Audit angefragt: „Brücken kaputt, LKW falsch,
 | LKW zu klein | Scale 0.7 → 1.0, y-Offset von 6 → 10. | `03ab5e2` |
 | Brücke nur 1 Demo | Zweite Brücke (3 Tiles) hinzu. | `93c391d` |
 
-**Final-HEAD:** `03ab5e2` — alle gemeldeten Bugs gefixt.
+**Final-HEAD nach Bug-Sweep:** `03ab5e2` — alle gemeldeten Bugs gefixt.
+
+---
+
+### Surprise-Mode (Patrick: „mach noch sachen, dass ich morgen happy und überrascht bin")
+
+Ab Commit `58e0b90` Polish-Sprint mit 5 großen Features:
+
+| Feature | Commit | Was |
+|---------|--------|-----|
+| **Multi-Vehicle** | `58e0b90` | 4 zusätzliche LKWs (blau/grün/gelb/weiß), eigene Auto-Drive-Loops, Vehicle-Klasse extrahiert |
+| **Schienen-System** | `e3fbef9` | Eigener Tile-Typ `schiene`, 16 Auto-Tiling-Varianten mit Schwellen + parallelen Eisen-Schienen, obere Map-Reihe ist Bahnstrecke |
+| **Wolken** | `e5d3eba` | 6 animierte Wolken in 3 Größen ziehen langsam über den Himmel (8-14s pro Durchgang) |
+| **Fabrik** | `e5d3eba` | Industrielles Gebäude mit Sägezahn-Dach, Schornstein, Rauch, gelben Industrie-Fenstern |
+| **Schiff** | `ca28164` | Frachtboot mit Hull + Kabine + Schornstein + Cargo-Container, segelt durch den Fluss |
+| **HUD-Welcome** | `ca28164` | Patrick-spezifische Welcome-Botschaft mit Live-Map-Stats |
+
+**Final-HEAD:** `ca28164` — Cargora ist jetzt eine LEBENDIGE Iso-Welt.
 
 ---
 
