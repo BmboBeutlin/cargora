@@ -7,7 +7,9 @@
 
 ## Vision in einem Satz
 
-Du baust ein Transport-Imperium auf, das mit Pferdekarren im Mittelalter beginnt und sich über Jahrhunderte zu einem modernen Logistik-Konzern entwickelt — gemeinsam mit Freunden in einer fiktiven Welt mit echten Märkten, echten Wechselwirkungen und echter Konkurrenz.
+**Phase 1:** Du verwaltest eine moderne Logistik-Firma — jeder LKW konfigurierbar, jeder Cargo-Typ mit Anforderungen, echte Märkte, Multiplayer mit Freunden in fiktiver Welt.
+
+**Langfristige Vision (Phase 4+):** Era-Progression wird optional zugeschaltet — beginne im Mittelalter mit Pferdekarren und entwickle dich durch alle Eras bis Sci-Fi.
 
 ---
 
@@ -186,19 +188,25 @@ Technologien werden erforscht und können von Konkurrenten kopiert werden, wenn 
 
 ---
 
-## Phasen-Plan (überarbeitet nach Survey)
+## Phasen-Plan (V3 — nach Era-System-Verschiebung)
 
 | Phase | Dauer | Ziel |
 |-------|-------|------|
-| **Phase 0 (jetzt)** | Tag 1 | Stunde-1-Prototyp ✅ + Doku-Struktur ✅ + GitHub-Repo ✅ + Survey ✅ |
-| **Phase 1 (MVP)** | Mon 1-3 | **NUR Era 1 (Mittelalter):** Pferdewagen + Trampelpfade + 2 Cargo-Typen + lokales Singleplayer + Basis-Multiplayer |
-| **Phase 2 (Era-Tiefe)** | Mon 4-6 | Modulare Pferdewagen (Pferd/Kutsche/Hufeisen), erste Forschung, eine Warenkette in Era 1 |
-| **Phase 3 (Era-Übergang)** | Mon 7-10 | **Era 2 (Frühe Neuzeit) freigeschaltet** — Tech-Forschung führt zur nächsten Era. Spieler erleben ersten Era-Switch. |
-| **Phase 4 (Wirtschaft)** | Mon 11-14 | Echter Markt zwischen Spielern, Investoren/Aktien-System, Städte mit Bedarfsmodell |
-| **Phase 5 (Era 3+)** | Mon 15-20 | Industrialisierung dazu (Dampfeisenbahn als zweite Modalität) |
-| **Phase 6+ (offene Skalierung)** | Mon 21+ | Era 4 (Moderne) + Era 5 (Sci-Fi). Sabotage/Spionage. Polish. |
+| **Phase 0 (jetzt)** | Tag 1 | Bootstrap-Prototyp ✅ + Doku ✅ + GitHub ✅ + Cabinet-Iso ✅ |
+| **Phase 1 (MVP Modern)** | Mon 1-3 | LKW + Asphalt-Straßen + 2 Cargo-Typen + lokales Singleplayer + Basis-Multiplayer (2 Spieler) |
+| **Phase 1.5 (Tile-System)** | Mon 4-5 | Auto-Tiling für glatte Straßen + Wasser + Berge/Höhen + Biome (Wald/Wüste). Erste echte Pixel-Sprites. |
+| **Phase 2 (Modulare Tiefe)** | Mon 6-8 | Modulare LKW (Reifen + Motor + Aufbau), Forschungsbaum, eine vollständige Warenkette |
+| **Phase 3 (Wirtschaft)** | Mon 9-11 | Echter Markt zwischen Spielern, Cash-Flow + Investoren-System, Städte mit Bedarfsmodell |
+| **Phase 4 (zweite Modalität)** | Mon 12-14 | Schiene (Container-Bahn) als zweite Modalität. Polish. **Optional: Era-Progression-System hier aktivierbar.** |
+| **Phase 5+ (offene Skalierung)** | Mon 15+ | Luft + Schiff. Sabotage/Spionage. Wenn Era-System gewünscht: Mittelalter+Industrialisierung+Sci-Fi-Eras retrospektiv hinzufügen. |
 
-**Gesamt: ~20-24 Monate bis vollständige Era-Progression.** Das ist **deutlich mehr** als ursprünglich geplante 12 Monate — weil Era-Progression das Scope vervielfacht. Aber **jede Phase liefert ein spielbares Etwas**.
+**Gesamt für Phase 1 (Multiplayer-fähiges Modern-Spiel): ~9-11 Monate.**
+**Gesamt für vollständiges Spiel mit allen Modalitäten: ~14-18 Monate.**
+**Era-Progression bleibt als Phase 5+ Erweiterung möglich** — das Datenmodell ist strukturell vorbereitet (Tile-Datenmodell hat optionale `era`-Property).
+
+### Was sich gegenüber V2-Plan geändert hat
+
+V2 wollte mit Mittelalter starten + Era-Progression als Kern-Mechanik (20-24 Monate Gesamt-Scope). V3 baut zuerst ein vollwertiges Modern-Spiel (9-11 Monate bis spielbar), Era-Progression bleibt als optional-zuschaltbares Feature für später. Begründung in **`DECISIONS.md` ADR-009**.
 
 ---
 

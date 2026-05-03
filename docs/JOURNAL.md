@@ -4,6 +4,62 @@
 
 ---
 
+## 2026-05-03 (Nacht) — Pivot zurück zu Phase-1-Modern, Era strukturell vorbereitet
+
+**Dauer:** ~30 Min · **Claude-Modell:** Opus 4.7 (1M context)
+
+### Was passiert ist
+
+Patrick hat zwei strategische Fragen aufgeworfen:
+1. **Engine-Wechsel zu Unity?** → **Verworfen.** Phaser bleibt, weil objektiv besser für Cargora-Scope (2D + Multiplayer + Browser-Distribution).
+2. **Phase-1-Era-Wechsel von Mittelalter zu Modern?** → **Akzeptiert mit „strukturell vorbereiten"-Variante.** Phase 1 baut ein vollwertiges Modern-Spiel (LKW + Asphalt + Container), Era-Progression bleibt als Phase 4+ Erweiterung möglich.
+
+Plus: Hover-Bug in Cabinet-Iso gefixt (`Math.floor` → `Math.round` in inverse Iso-Funktion).
+
+### Was gebaut
+
+- **Hover-Fix** in `src/scenes/CabinetIsoScene.ts` — Klick-Targeting jetzt pixel-genau
+- **Konturen entfernt** — Tiles fließen visuell ineinander, kein 1px-Stroke mehr
+- **Hover-Highlight** — Diamond-Outline unter Cursor zeigt vor dem Klick, welche Tile getroffen wird
+- **HUD-Erweiterung** — neuer Block „Unter Cursor: [Tile] (x, y)" für sofortiges Feedback
+- **Top-Down-Scene entfernt** (`src/scenes/TopDownScene.ts` gelöscht) — Cabinet-Iso ist einziger Modus
+- **Demo-Karte → produktive Karte** in `src/world/map.ts`: kleines modernes Industriegebiet mit Hauptstraßen-Ring + Lagerbezirken + Innenhof
+- **Datenmodell erweitert** strukturell:
+  - `WorldData`-Type mit Tiles + Heights + Biomes + Eras (alle als 2D-Arrays)
+  - `EraType`-Enum (Medieval, EarlyModern, Industrial, Modern, SciFi) — vorbereitet, aber unbenutzt
+  - `BiomeType`-Enum (Temperate, Forest, Desert, Tundra, Mountain) — vorbereitet, aber unbenutzt
+  - Heights default 0, Biomes/Eras default null (Sparse-Property-Pattern für Performance)
+- **Doku-Updates:**
+  - `GAME_DESIGN.md`: Vision auf Phase-1-Modern + Era als Phase 4+ Erweiterung umgeschrieben. Phasen-Plan V3 (9-11 Monate für Phase 1, 14-18 für vollständiges Modern-Spiel).
+  - `DECISIONS.md`: **ADR-009** (Engine bleibt Phaser, Phase 1 = Modern, Era strukturell vorbereitet)
+  - `JOURNAL.md`: Diese Eintrag
+
+### Wichtige Klarstellungen aus Patricks Aussagen
+
+- **„Ich will nicht als Person ranwachsen. Nur Spaß am Spielen und Entwickeln."** → Anti-Pattern: Niemals Cargora als Lehr-Projekt für Patrick framen. Patrick ist Game-Designer + Spieler, nicht Programmier-Schüler.
+- **Era-System „vorrüsten"** → Datenmodell-Felder anlegen, ohne Mechanik zu implementieren. Sparse-Property-Pattern verwendet.
+- **Phaser-Wechsel akzeptiert** wenn ich es als „besser für Spielkomplexität" begründe. Engine-Wechsel zu Unity ist hiermit **endgültig vom Tisch**.
+
+### Lessons aus dieser Session
+
+- **Pivot-Müdigkeit ist real.** Diese Session hatte 4 große Pivots (Logistik→Era-Progression→Cabinet-Iso→zurück zu Modern). Patrick hat selbst gesagt „nur Spaß am Entwickeln" — also bei nächsten Vision-Drift fragen, ob Patrick noch Lust hat oder Pause-Bedarf besteht.
+- **Strukturelle Vorbereitung > Migration später.** Tile-Datenmodell mit `era`/`biome`/`height` jetzt anlegen kostet 5 Min. Die gleiche Migration in 6 Monaten würde Stunden kosten und alle bestehenden Karten brechen.
+- **„Vorrüsten" ist ein Game-Design-Pattern, kein Anti-Pattern.** Speculative Generality ist normalerweise ein Code-Smell. Aber für klar absehbare Features (Era-System ist in Patricks Vision festgehalten, ADR-004 + ADR-008) ist Vorrüsten zukunftssicheres Architektur-Design.
+
+### Was offen blieb
+
+- [ ] **Erste Sprites generieren** — moderner LKW (48×48), Asphalt-Tile (64×32 Diamond), Lager-Gebäude (48×64). Workflow: KI-Generation → Patrick-Politur in Aseprite → ins Repo committen.
+- [ ] **Sprite-Generation-Workflow** mit Patrick abstimmen — welches Tool, welche Iteration, wer poliert?
+- [ ] **A*-Pathfinding** statt linearer Bewegung. Aktuell fährt LKW geradlinig durch alles, sollte um Gras-Tiles herum navigieren.
+
+### Nächste Session — Vorschläge
+
+1. **Erste moderne LKW-Sprites generieren** und ins Spiel einbauen (das ist der „aha"-Moment, wo das Spiel echt aussieht)
+2. **A*-Pathfinding einbauen** — LKW navigiert um Hindernisse, Klick auf Gras → LKW findet Weg drumherum
+3. **Multiplayer-Server-Setup beginnen** — Colyseus-Server-Stub, zwei Browser-Tabs, beide sehen den gleichen LKW
+
+---
+
 ## 2026-05-03 (Spät-Abend) — Survey V2 + Cabinet-Iso live im Spiel
 
 **Dauer:** ~30 Min · **Claude-Modell:** Opus 4.7 (1M context)

@@ -292,6 +292,69 @@ Era-Progression ist Kern-Mechanik (ADR-004). Survey V2 musste klären: Wie schne
 
 ---
 
+---
+
+## ADR-009: Engine bleibt Phaser, Phase 1 = Modern ohne Era-System (strukturell vorbereitet)
+
+**Datum:** 2026-05-03 (späte Session)
+**Status:** Akzeptiert
+**Entscheider:** Patrick
+
+### Kontext
+
+Im Verlauf der Session-Diskussion sind zwei strategische Fragen aufgetaucht:
+1. **Engine-Wechsel?** Sollte Cargora in Unity oder Unreal statt Phaser/Browser gebaut werden, damit Patrick optional Game-Dev lernen kann?
+2. **Era-Start-Wechsel?** Soll Phase 1 statt Mittelalter mit Moderne/Industrialisierung beginnen — der „interessante" Teil zuerst?
+
+Patrick wollte ehrliche Empfehlung, hat dann auf Basis dessen entschieden.
+
+### Entscheidungen
+
+**A. Engine bleibt Phaser/Browser/TypeScript.**
+
+Patrick: „Wenn du sagst Phaser und Browser ist definitiv besser und, wenn das ganze Spiel komplexer wird und irgendwie dann haben wir da trotzdem mehr Möglichkeiten oder kriegen das einfacher hin, dann bleiben wir beim Browser."
+
+→ Engine-Wechsel zu Unity vom Tisch. Bisherige Code-Basis (Phaser, Vite, TypeScript, Cabinet-Iso-Scene) bleibt produktiv.
+
+**B. Phase 1 baut „Cargora ohne Era-System" — als komplettes Modern-Spiel.**
+
+Patrick: „Ok, dann erstmal ohne Era-System. Dann können wir das ja noch reinmachen. Vielleicht kannst du das ja aber schon irgendwie vorrüsten, dass man die Era-Progression drin hat, eventuell."
+
+→ ADR-004 (Era-Progression als Kern-Mechanik) wird inhaltlich auf „Phase 4+ optional" zurückgestuft. Phase 1 baut ein vollwertiges Logistik-Spiel mit modernen LKW + Container + Asphaltstraßen, OHNE Era-Wechsel.
+
+**C. Era-System wird strukturell vorbereitet, nicht visuell aktiviert.**
+
+→ Tile-Datenmodell bekommt `era`-Feld (default `null`). Wenn Era-System später kommt, sind Karten ohne Migration upgradebar. Sparse-Property-Pattern: nur Tiles, die explizit eine Era-Markierung brauchen, bekommen einen Tag.
+
+### Begründung
+
+**Engine-Wahl Phaser:**
+- Cargora-Scope ist 2D + Multiplayer + Browser-Distribution → Phaser objektiv überlegen für diesen Use-Case
+- Unity bietet 3D + Mobile + Visual-Editor — alles Features, die Cargora nicht braucht
+- Patrick hat „kein Programmieren lernen" als Hauptziel definiert → Engine-Lernen widerspricht dem
+- Bisherige 4h Code-Arbeit bleibt nutzbar
+
+**Phase 1 = Modern:**
+- Patrick hat eigene Aussage: „Mittelalter ist immer sehr langweilig" — pragmatisch ehrlich
+- Moderne Vehicles + Cargo + Container haben mehr Tiefe-Potenzial sofort sichtbar
+- KI-Sprite-Generation funktioniert mit modernen Assets besser (mehr Trainings-Daten als für Mittelalter-Pferdewagen)
+- „Aha"-Moment kommt schneller (sieht in Phase 1 wie ein Mini-Tycoon aus, nicht wie Anno-1404-ohne-Komplexität)
+
+**Era-System strukturell vorbereiten:**
+- Patrick will explizit „vorrüsten" — also Datenmodell-Felder anlegen, ohne Mechanik
+- Vermeidet Migrations-Schmerz in 6+ Monaten, falls Era-Progression doch kommt
+- Sparse-Property-Pattern (default `null`) hat null Performance-Kosten
+
+### Konsequenzen
+
+- **ADR-004 wird Status: „Status: Akzeptiert für Phase 4+, NICHT für Phase 1"** umetikettiert
+- **GAME_DESIGN.md wird angepasst:** Phase 1 explizit als Single-Era beschrieben, Era-Progression als optionale Phase 4+ Erweiterung
+- **Tile-Datenmodell erweitert** um `era`, `biome`, `height` (alle default null/0). Produktive Karte ohne Era-Tags.
+- **Sprite-Generation startet mit modernen Assets:** LKW, Asphalt, Lagerhalle. Mittelalter-Pferdewagen kommen falls/wenn Era-Progression aktiviert wird.
+- **Phasen-Plan komprimiert:** Statt 20-24 Monate jetzt wieder 12-15 Monate für ein vollwertiges Modern-Spiel mit Multiplayer.
+
+---
+
 ## Template für neue ADRs
 
 ```markdown
