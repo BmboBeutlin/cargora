@@ -23,6 +23,7 @@ export { createSchotterTileSprite } from './tile-schotter.ts';
 export { createFeldwegTileSprite } from './tile-feldweg.ts';
 export { createWarehouseSprite } from './warehouse.ts';
 export { createEastWallSprite, createSouthWallSprite } from './tile-wall.ts';
+export { createBridgePillarSprite } from './bridge-pillar.ts';
 
 /**
  * Recommended texture keys for Phaser registration.
@@ -47,6 +48,9 @@ export function eastWallKey(heightDiff: number): string {
 }
 export function southWallKey(heightDiff: number): string {
   return `sprite-wall-south-${heightDiff}`;
+}
+export function bridgePillarKey(pillarHeight: number): string {
+  return `sprite-bridge-pillar-${pillarHeight}`;
 }
 
 export type SpriteKey = (typeof SPRITE_KEYS)[keyof typeof SPRITE_KEYS];

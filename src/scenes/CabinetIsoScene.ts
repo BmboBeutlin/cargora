@@ -5,7 +5,7 @@ import {
   START_TILE,
   buildWorld,
 } from '../world/map';
-import type { TileType } from '../world/map';
+import type { TileType, BridgeTile } from '../world/map';
 import { findPath } from '../world/pathfinding';
 import type { Point } from '../world/pathfinding';
 import { renderHud, flashHud } from '../ui/hud';
@@ -17,11 +17,13 @@ import {
   createAsphaltOverlaySprite,
   createEastWallSprite,
   createSouthWallSprite,
+  createBridgePillarSprite,
   parseConnectionsKey,
   ALL_CONNECTION_KEYS,
   SPRITE_KEYS,
   eastWallKey,
   southWallKey,
+  bridgePillarKey,
 } from '../assets/sprites';
 import type { Heading } from '../assets/sprites';
 
@@ -81,9 +83,21 @@ function getAsphaltConnectionsKey(map: TileType[][], x: number, y: number): stri
   return `${N ? '1' : '0'}${E ? '1' : '0'}${S ? '1' : '0'}${W ? '1' : '0'}`;
 }
 
+// Brücken-Connections: Brücke verbindet sich mit anderen Brücken UND mit Boden-Asphalt am Endpunkt
+function getBridgeConnectionsKey(bridges: BridgeTile[], x: number, y: number): string {
+  const hasBridge = (xx: number, yy: number): boolean =>
+    bridges.some((b) => b.x === xx && b.y === yy);
+  const N = hasBridge(x, y - 1);
+  const E = hasBridge(x + 1, y);
+  const S = hasBridge(x, y + 1);
+  const W = hasBridge(x - 1, y);
+  return `${N ? '1' : '0'}${E ? '1' : '0'}${S ? '1' : '0'}${W ? '1' : '0'}`;
+}
+
 export class CabinetIsoScene extends Phaser.Scene {
   private map: TileType[][] = [];
   private heights: number[][] = [];
+  private bridges: BridgeTile[] = [];
   private truck!: Phaser.GameObjects.Image;
   private hoverTile!: Phaser.GameObjects.Polygon;
   private pathMarkers: Phaser.GameObjects.Arc[] = [];
@@ -105,6 +119,7 @@ export class CabinetIsoScene extends Phaser.Scene {
     const world = buildWorld();
     this.map = world.tiles;
     this.heights = world.heights;
+    this.bridges = world.bridges;
 
     for (let y = 0; y < MAP_H; y++) {
       for (let x = 0; x < MAP_W; x++) {
@@ -162,6 +177,32 @@ export class CabinetIsoScene extends Phaser.Scene {
           }
         }
       }
+    }
+
+    // Brücken rendern: Asphalt-Tile auf erhöhter Position + Pfeiler darunter
+    for (const bridge of this.bridges) {
+      const { x: sx, y: sy } = gridToScreen(bridge.x, bridge.y);
+      const baseH = this.heights[bridge.y][bridge.x];
+      const bridgeH = bridge.bridgeHeight;
+      const pillarH = (bridgeH - baseH) * HEIGHT_PIXELS;
+
+      // Pfeiler links und rechts vom Tile-Center, an den seitlichen Diamond-Spitzen
+      if (pillarH > 0) {
+        const pKey = bridgePillarKey(pillarH);
+        // Linker Pfeiler an W-Diamond-Spitze (sx-32, sy)
+        const pillarLeft = this.add.image(sx - 16, sy + 4 - baseH * HEIGHT_PIXELS, pKey);
+        pillarLeft.setOrigin(0.5, 1);
+        pillarLeft.setDepth(sy + 2);
+        // Rechter Pfeiler an E-Diamond-Spitze (sx+32, sy)
+        const pillarRight = this.add.image(sx + 16, sy + 4 - baseH * HEIGHT_PIXELS, pKey);
+        pillarRight.setOrigin(0.5, 1);
+        pillarRight.setDepth(sy + 2);
+      }
+
+      // Brücken-Asphalt-Sprite — Auto-Tile basierend auf anderen Brücken-Tiles
+      const bridgeConnKey = getBridgeConnectionsKey(this.bridges, bridge.x, bridge.y);
+      const bridgeImg = this.add.image(sx, sy - bridgeH * HEIGHT_PIXELS, asphaltKey(bridgeConnKey));
+      bridgeImg.setDepth(sy + bridgeH * 8 + 1000); // immer ÜBER allem darunter
     }
 
     const halfW = TILE_W / 2;
@@ -230,6 +271,12 @@ export class CabinetIsoScene extends Phaser.Scene {
       if (!tex.exists(eKey)) tex.addCanvas(eKey, createEastWallSprite(diff));
       const sKey = southWallKey(diff);
       if (!tex.exists(sKey)) tex.addCanvas(sKey, createSouthWallSprite(diff));
+    }
+
+    // Brücken-Pfeiler-Sprites (1-3 Höhe)
+    for (let h = 1; h <= 3; h++) {
+      const pKey = bridgePillarKey(h * HEIGHT_PIXELS);
+      if (!tex.exists(pKey)) tex.addCanvas(pKey, createBridgePillarSprite(h * HEIGHT_PIXELS));
     }
 
     const truckSet = createTruckSpriteSet();

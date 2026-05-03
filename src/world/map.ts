@@ -73,6 +73,30 @@ const MAP_ASCII: string[] = [
   '..................', // 13
 ];
 
+// Brücke: Asphalt auf Höhe X über Boden-Tile auf Höhe Y (X > Y)
+// bridgeHeight ist absolut (nicht relativ zum Boden)
+export type BridgeTile = {
+  x: number;
+  y: number;
+  bridgeHeight: number;
+};
+
+// Tunnel-Tile: Eingang in Berg
+export type TunnelTile = {
+  x: number;
+  y: number;
+  direction: 'N' | 'E' | 'S' | 'W'; // wohin der Tunnel geht
+};
+
+// Slope/Rampe: Asphalt-Tile, das schräg von Höhe X zu Höhe X+1 ansteigt
+// direction = wohin die Steigung zeigt (höhere Seite)
+export type SlopeTile = {
+  x: number;
+  y: number;
+  direction: 'N' | 'E' | 'S' | 'W';
+  baseHeight: number; // niedrigere Seite
+};
+
 export type WorldData = {
   width: number;
   height: number;
@@ -80,6 +104,9 @@ export type WorldData = {
   heights: number[][];
   biomes: (BiomeType | null)[][];
   eras: (EraType | null)[][];
+  bridges: BridgeTile[];
+  tunnels: TunnelTile[];
+  slopes: SlopeTile[];
 };
 
 export function buildWorld(): WorldData {
@@ -111,6 +138,25 @@ export function buildWorld(): WorldData {
   heights[13][9] = 2;
   heights[13][10] = 1;
 
+  // Demo-Brücke: 4 Asphalt-Tiles in einer Reihe, Höhe 2, auf der unteren Gras-Fläche (Zeile 13)
+  // Sichtbare freistehende Brücke mit Pfeilern darunter
+  const bridges: BridgeTile[] = [
+    { x: 4, y: 13, bridgeHeight: 2 },
+    { x: 5, y: 13, bridgeHeight: 2 },
+    { x: 6, y: 13, bridgeHeight: 2 },
+    { x: 7, y: 13, bridgeHeight: 2 },
+  ];
+
+  // Demo-Tunnel: Eingang am Berg-Fuß
+  const tunnels: TunnelTile[] = [
+    { x: 7, y: 1, direction: 'E' }, // Eingang Richtung Osten
+  ];
+
+  // Demo-Rampe: Asphalt-Steigung am Berg-Fuß
+  const slopes: SlopeTile[] = [
+    { x: 6, y: 0, direction: 'E', baseHeight: 0 },
+  ];
+
   return {
     width: MAP_W,
     height: MAP_H,
@@ -118,6 +164,9 @@ export function buildWorld(): WorldData {
     heights,
     biomes,
     eras,
+    bridges,
+    tunnels,
+    slopes,
   };
 }
 
