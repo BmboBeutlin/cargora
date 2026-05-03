@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cargora — Design Survey</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-base: #0d0f13;
+    --bg-surface: #171b22;
+    --bg-elevated: #1e2229;
+    --bg-card: #1a1e25;
+    --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.18);
+    --border-active: rgba(240,136,42,0.55);
+    --text-main: #c8d0db;
+    --text-secondary: #7a8494;
+    --text-dim: #3a424e;
+    --accent: #f0882a;
+    --bar-ok: #2a7a4e;
+  }
+  html, body {
+    background: var(--bg-base);
+    color: var(--text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+  body { padding: 48px 24px 120px; }
+  .container { max-width: 980px; margin: 0 auto; }
+  header { margin-bottom: 48px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+  header h1 {
+    font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; color: var(--text-main);
+  }
+  header h1 b { color: var(--accent); }
+  header p { color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem; }
+  .progress-bar {
+    margin-top: 18px; height: 4px; background: var(--bg-elevated);
+    border-radius: 2px; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; width: 0%; background: var(--accent);
+    transition: width 0.3s ease;
+  }
+  .question {
+    margin-bottom: 56px; padding-top: 8px;
+  }
+  .q-label {
+    display: inline-block; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.15em;
+    margin-bottom: 8px;
+  }
+  .q-title {
+    font-size: 1.35rem; font-weight: 700; color: var(--text-main);
+    margin-bottom: 10px; letter-spacing: -0.01em;
+  }
+  .q-help {
+    color: var(--text-secondary); font-size: 0.85rem;
+    margin-bottom: 20px; max-width: 720px;
+  }
+  .options { display: grid; gap: 14px; }
+  .options.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .options.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 720px) {
+    .options.cols-2, .options.cols-3 { grid-template-columns: 1fr; }
+  }
+  .option {
+    background: var(--bg-card); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 18px; cursor: pointer;
+    transition: all 0.18s ease; position: relative;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .option:hover {
+    border-color: var(--border-strong);
+    background: var(--bg-elevated);
+  }
+  .option.selected {
+    border-color: var(--border-active);
+    background: rgba(240,136,42,0.06);
+  }
+  .option.selected::after {
+    content: '✓'; position: absolute; top: 12px; right: 14px;
+    color: var(--accent); font-weight: 800; font-size: 1.05rem;
+  }
+  .option-title {
+    font-weight: 700; font-size: 0.92rem; color: var(--text-main);
+  }
+  .option-desc {
+    font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5;
+  }
+  .option-tag {
+    display: inline-block; font-size: 0.62rem;
+    background: rgba(255,255,255,0.05); color: var(--text-secondary);
+    padding: 2px 8px; border-radius: 4px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    align-self: flex-start;
+  }
+  .option-tag.recommended {
+    background: rgba(240,136,42,0.14); color: var(--accent);
+  }
+  .visual-frame {
+    background: var(--bg-base); border-radius: 6px;
+    padding: 12px; display: flex; align-items: center; justify-content: center;
+    min-height: 120px;
+  }
+  .multi-input {
+    background: var(--bg-card); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 14px 18px; width: 100%;
+    color: var(--text-main); font-size: 0.92rem;
+    font-family: inherit;
+  }
+  .multi-input:focus { outline: none; border-color: var(--border-active); }
+  textarea.multi-input { min-height: 90px; resize: vertical; }
+  footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(13,15,19,0.95);
+    backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+    border-top: 1px solid var(--border);
+    padding: 16px 24px; z-index: 100;
+  }
+  .footer-inner {
+    max-width: 980px; margin: 0 auto;
+    display: flex; gap: 12px; align-items: center; justify-content: space-between;
+  }
+  .status-text { font-size: 0.8rem; color: var(--text-secondary); }
+  .btn {
+    padding: 10px 18px; border-radius: 6px; border: 1.5px solid var(--border);
+    background: var(--bg-elevated); color: var(--text-main);
+    font-size: 0.85rem; font-weight: 600; font-family: inherit;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .btn:hover { background: #2a3038; border-color: var(--border-strong); }
+  .btn-primary {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .btn-primary:hover { background: #d97828; border-color: #d97828; }
+  .btn-primary:disabled {
+    background: var(--bg-elevated); border-color: var(--border);
+    color: var(--text-dim); cursor: not-allowed;
+  }
+  .export-modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; padding: 24px;
+  }
+  .export-modal.show { display: flex; }
+  .export-content {
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 13px; padding: 28px; max-width: 720px; width: 100%;
+    max-height: 80vh; overflow-y: auto;
+  }
+  .export-content h2 {
+    font-size: 1.3rem; font-weight: 700; margin-bottom: 14px;
+  }
+  .export-content pre {
+    background: var(--bg-base); border: 1px solid var(--border);
+    border-radius: 6px; padding: 16px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.78rem;
+    color: var(--text-main); white-space: pre-wrap;
+    margin: 14px 0; max-height: 50vh; overflow-y: auto;
+  }
+  .export-actions { display: flex; gap: 10px; }
+  /* SVG visual styles */
+  .viz-svg {
+    width: 100%; max-width: 220px; height: auto;
+    border-radius: 4px;
+    image-rendering: pixelated;
+  }
+  .viz-truck-pixel {
+    width: 64px; height: 64px;
+    image-rendering: pixelated;
+    border-radius: 4px;
+  }
+  .viz-row {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    align-items: center; justify-content: center;
+  }
+  .free-text-box {
+    margin-top: 12px;
+    padding: 14px; background: var(--bg-card);
+    border: 1.5px dashed var(--border);
+    border-radius: 8px;
+  }
+  .free-text-box label {
+    display: block; font-size: 0.7rem; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><b>Cargora</b> — Design Survey</h1>
+    <p>10 Fragen, die das Spiel definieren. Klick deine Wahl an, optional Notizen ergänzen, am Ende auf <b>Exportieren</b> — Text in den Chat kopieren.</p>
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+  </header>
+
+  <!-- Q1: Welt-Setting -->
+  <div class="question" data-q="1" data-key="setting">
+    <div class="q-label">Frage 1 / 10 · A. Setting</div>
+    <div class="q-title">Welt-Setting</div>
+    <div class="q-help">In welcher Art von Welt spielt Cargora? Beeinflusst Karten-Stil, Gebäude-Optik, Cargo-Typen.</div>
+    <div class="options cols-3">
+      <div class="option" data-value="real">
+        <div class="option-title">Realistische heutige Welt</div>
+        <div class="option-desc">Echte Geografie (Europa, Asien, beliebig). Heutige Cargo-Typen, echte Städtenamen.</div>
+      </div>
+      <div class="option" data-value="fictional">
+        <div class="option-title">Fiktive Welt</div>
+        <div class="option-desc">Erfundene Karten, eigene Städte, prozedural generierbar. Heute-Tech aber Welt unsererseits.</div>
+        <span class="option-tag recommended">Empfehlung</span>
+      </div>
+      <div class="option" data-value="alt-history">
+        <div class="option-title">Alternative Geschichte</div>
+        <div class="option-desc">Steampunk-1900, Sci-Fi-2150, Fantasy. Andere Tech und Optik.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q2: Tech-Niveau -->
+  <div class="question" data-q="2" data-key="tech_level">
+    <div class="q-label">Frage 2 / 10 · A. Setting</div>
+    <div class="q-title">Technologie-Niveau</div>
+    <div class="q-help">Wie weit reicht der Tech-Tree? Beginnt im Heute oder mit Sci-Fi-Endgame?</div>
+    <div class="options cols-3">
+      <div class="option" data-value="modern">
+        <div class="option-title">Heute</div>
+        <div class="option-desc">Diesel-LKW, normale Bahn, Containerschiffe, Standardflugzeuge. Forschung verbessert vorhandene Tech.</div>
+      </div>
+      <div class="option" data-value="modern-plus">
+        <div class="option-title">Heute + leichter Sci-Fi-Twist</div>
+        <div class="option-desc">Start heute, Endgame mit E-LKW, Magnet-Bahnen, Cargo-Drohnen.</div>
+        <span class="option-tag recommended">Empfehlung</span>
+      </div>
+      <div class="option" data-value="scifi">
+        <div class="option-title">Voll-Sci-Fi</div>
+        <div class="option-desc">Anti-Gravitation, Teleporter, Orbital-Cargo. Komplett anderes Tech-Universum.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q3: Karten-Größe -->
+  <div class="question" data-q="3" data-key="map_size">
+    <div class="q-label">Frage 3 / 10 · A. Setting</div>
+    <div class="q-title">Karten-Größe</div>
+    <div class="q-help">Wie groß ist die Spielwelt? Beeinflusst Render-Performance, Spielzeit, Gameplay-Gefühl.</div>
+    <div class="options cols-3">
+      <div class="option" data-value="small">
+        <div class="option-title">Klein</div>
+        <div class="option-desc">~200×200 Tiles. Eine Region, knapp, taktisch dicht. 1-2h pro Kampagne.</div>
+      </div>
+      <div class="option" data-value="medium">
+        <div class="option-title">Mittel</div>
+        <div class="option-desc">~600×600 Tiles. Ein Land, Platz für 2-4 Spieler-Firmen, mehrere Städte. Mehrere Sitzungen pro Kampagne.</div>
+        <span class="option-tag recommended">Empfehlung</span>
+      </div>
+      <div class="option" data-value="large">
+        <div class="option-title">Groß</div>
+        <div class="option-desc">~2000×2000 Tiles. Kontinent-Maßstab. Performance-anspruchsvoll. Wochen-Kampagnen.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q4: Konkurrenz-Modus -->
+  <div class="question" data-q="4" data-key="competition">
+    <div class="q-label">Frage 4 / 10 · B. Multiplayer</div>
+    <div class="q-title">Konkurrenz-Modus</div>
+    <div class="q-help">Wie spielt ihr gegeneinander/miteinander?</div>
+    <div class="options cols-3">
+      <div class="option" data-value="competitive">
+        <div class="option-title">Reine Konkurrenz</div>
+        <div class="option-desc">Jeder gegen jeden. Wer am Ende den höchsten Wert hat, gewinnt.</div>
+      </div>
+      <div class="option" data-value="alliances">
+        <div class="option-title">Mit Allianzen & Verträgen</div>
+        <div class="option-desc">Konkurrenz, aber Spieler können Verträge schließen, Kartelle bilden, Lieferabkommen.</div>
+        <span class="option-tag recommended">Empfehlung</span>
+      </div>
+      <div class="option" data-value="coop">
+        <div class="option-title">Kooperativ</div>
+        <div class="option-desc">Alle bauen gemeinsam an einer Welt, gegen NPC-Konkurrenten oder Welt-Events.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q5: Sabotage-Härte -->
+  <div class="question" data-q="5" data-key="sabotage">
+    <div class="q-label">Frage 5 / 10 · B. Multiplayer</div>
+    <div class="q-title">Sabotage-Härte</div>
+    <div class="q-help">Wie weit dürfen Spieler einander schaden?</div>
+    <div class="options cols-3">
+      <div class="option" data-value="economic">
+        <div class="option-title">Nur wirtschaftlich</div>
+        <div class="option-desc">Preise drücken, Verträge wegschnappen, Aufkauf-Versuche. Keine direkte Einwirkung auf Konkurrent-Anlagen.</div>
+      </div>
+      <div class="option" data-value="espionage">
+        <div class="option-title">+ Spionage</div>
+        <div class="option-desc">Forschung kopieren, Cargo-Diebstahl, Insider-Infos kaufen. Indirekt aber spürbar.</div>
+        <span class="option-tag recommended">Empfehlung</span>
+      </div>
+      <div class="option" data-value="hard">
+        <div class="option-title">+ Direkte Sabotage</div>
+        <div class="option-desc">Anlagen beschädigen, Strecken blockieren. Kann kippen — nur, wenn ihr Drama wollt.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q6: Sitzungs-Format -->
+  <div class="question" data-q="6" data-key="session_format">
+    <div class="q-label">Frage 6 / 10 · B. Multiplayer</div>
+    <div class="q-title">Sitzungs-Format</div>
+    <div class="q-help">Wie lebt eine Welt zwischen euren Treffen?</div>
+    <div class="options cols-3">
+      <div class="option" data-value="campaign">
+        <div class="option-title">Kampagne über Wochen</div>
+        <div class="option-desc">Save & Continue. Eine Welt = Wochen Spielzeit, viele Sitzungen, persistenter Fortschritt.</div>
+        <span class="option-tag recommended">Empfehlung</span>
+      </div>
+      <div class="option" data-value="short">
+        <div class="option-title">Kurze Sessions</div>
+        <div class="option-desc">60-90 Min pro Spiel mit klarer „Endbedingung" (Punkte, Zeit, Ziel-Erreichen). Welt nicht persistent.</div>
+      </div>
+      <div class="option" data-value="async">
+        <div class="option-title">Asynchron / Live-Welt</div>
+        <div class="option-desc">Welt läuft 24/7 weiter. Spieler loggen sich ein, machen was, gehen wieder. Anspruchsvoll.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q7: Wirtschaftsmodell -->
+  <div class="question" data-q="7" data-key="economy">
+    <div class="q-label">Frage 7 / 10 · C. Wirtschaft</div>
+    <div class="q-title">Wirtschaftsmodell</div>
+    <div class="q-help">Wie verdienst und wirtschaftest du?</div>
+    <div class="options cols-3">
+      <div class="option" data-value="cashflow">
+        <div class="option-title">Reines Cash-Flow</div>
+        <div class="option-desc">Verdiene Geld → kaufe Sachen → verdiene mehr. Klassisch, einfach.</div>
+      </div>
+      <div class="option" data-value="invest">
+        <div class="option-title">+ Investoren / Aktien / Kredite</div>
+        <div class="option-desc">Du kannst Kapital aufnehmen, Aktien deiner Firma ausgeben, Konkurrenten übernehmen. Tiefe + Risiko.</div>
+        <span class="option-tag recommended">Empfehlung</span>
+      </div>
+      <div class="option" data-value="reputation">
+        <div class="option-title">+ Reputation als Soft-Currency</div>
+        <div class="option-desc">Neben Geld zählt deine Reputation (pünktliche Lieferung, Qualität). Beeinflusst Vertrags-Optionen.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q8: Terrain-Schule (visuell) -->
+  <div class="question" data-q="8" data-key="terrain_style">
+    <div class="q-label">Frage 8 / 10 · D. Visual</div>
+    <div class="q-title">Terrain-Schule</div>
+    <div class="q-help">Welcher Look prägt die Karte? Bestimmt Camera-Perspektive und Code-Komplexität.</div>
+    <div class="options cols-3">
+      <div class="option" data-value="openttd-iso">
+        <div class="visual-frame">
+          <svg class="viz-svg" viewBox="0 0 220 130">
+            <!-- Iso terrain: parallelogram tiles with height steps -->
+            <defs>
+              <pattern id="grid-iso" patternUnits="userSpaceOnUse" width="40" height="20" patternTransform="skewX(-30)">
+                <rect width="40" height="20" fill="#3a5a3a" stroke="#2a4a2a" stroke-width="0.5"/>
+              </pattern>
+            </defs>
+            <rect width="220" height="130" fill="#2e4a2e"/>
+            <!-- Iso ground -->
+            <polygon points="20,80 110,40 200,80 110,120" fill="#4a6a4a" stroke="#2a4a2a" stroke-width="1"/>
+            <!-- Höhen-Stufe -->
+            <polygon points="80,60 130,35 170,55 120,80" fill="#5a7a5a" stroke="#2a4a2a" stroke-width="1"/>
+            <polygon points="80,60 120,80 120,90 80,70" fill="#3a5a3a"/>
+            <polygon points="120,80 170,55 170,65 120,90" fill="#4a6a4a"/>
+            <!-- Asphalt-Straße -->
+            <polygon points="40,90 90,70 100,75 50,95" fill="#4a4a52" stroke="#2a2a30" stroke-width="0.5"/>
+          </svg>
+        </div>
+        <div class="option-title">OpenTTD-Stil (3/4-Iso)</div>
+        <div class="option-desc">Klassischer Tycoon-Look. Höhen sichtbar als Stufen. <b>Aufwand: hoch</b> — Iso-Math, Tile-Übergänge.</div>
+      </div>
+      <div class="option" data-value="mini-flat">
+        <div class="visual-frame">
+          <svg class="viz-svg" viewBox="0 0 220 130">
+            <rect width="220" height="130" fill="#e8e4d5"/>
+            <!-- abstract zones, pure flat top-down -->
+            <rect x="20" y="20" width="80" height="50" fill="#d8d2c0" rx="2"/>
+            <rect x="120" y="40" width="70" height="60" fill="#c8c2b0" rx="2"/>
+            <line x1="0" y1="80" x2="220" y2="80" stroke="#3a3a3a" stroke-width="3"/>
+            <line x1="100" y1="0" x2="100" y2="130" stroke="#3a3a3a" stroke-width="3"/>
+            <circle cx="100" cy="80" r="6" fill="#f0882a"/>
+            <circle cx="50" cy="40" r="4" fill="#3a78c8"/>
+            <circle cx="160" cy="70" r="4" fill="#5ca85c"/>
+          </svg>
+        </div>
+        <div class="option-title">Mini-Motorways-Stil</div>
+        <div class="option-desc">Sehr clean, abstrakt, Linien-fokussiert. <b>Aufwand: niedrig</b> — kaum mehr als jetzt. Wenig Tiefe.</div>
+      </div>
+      <div class="option" data-value="factorio-flat">
+        <div class="visual-frame">
+          <svg class="viz-svg" viewBox="0 0 220 130">
+            <!-- Factorio-style: textured biomes top-down with soft transitions -->
+            <defs>
+              <radialGradient id="forest-grad" cx="50%" cy="50%">
+                <stop offset="0%" stop-color="#3a5a3a"/>
+                <stop offset="100%" stop-color="#2a4a2a"/>
+              </radialGradient>
+              <pattern id="grass-tex" patternUnits="userSpaceOnUse" width="6" height="6">
+                <rect width="6" height="6" fill="#4a7a4a"/>
+                <circle cx="2" cy="2" r="0.6" fill="#5a8a5a"/>
+                <circle cx="4" cy="4" r="0.4" fill="#3a6a3a"/>
+              </pattern>
+              <pattern id="sand-tex" patternUnits="userSpaceOnUse" width="6" height="6">
+                <rect width="6" height="6" fill="#c8a878"/>
+                <circle cx="2" cy="3" r="0.4" fill="#b89868"/>
+                <circle cx="5" cy="1" r="0.4" fill="#d8b888"/>
+              </pattern>
+            </defs>
+            <rect width="220" height="130" fill="url(#grass-tex)"/>
+            <!-- Wald-Biom -->
+            <ellipse cx="50" cy="50" rx="45" ry="35" fill="url(#forest-grad)"/>
+            <!-- Wüste -->
+            <ellipse cx="170" cy="80" rx="40" ry="30" fill="url(#sand-tex)"/>
+            <!-- Asphalt-Straße -->
+            <rect x="0" y="65" width="220" height="14" fill="#4a4a52"/>
+            <rect x="0" y="71" width="220" height="2" fill="#7a7a82" stroke-dasharray="4 6"/>
+            <!-- Höhen-Hint Schatten -->
+            <ellipse cx="100" cy="30" rx="20" ry="8" fill="rgba(0,0,0,0.15)"/>
+          </svg>
+        </div>
+        <div class="option-title">Factorio-Stil + Höhen-Hint</div>
+        <div class="option-desc">Top-down mit Biomen, weichen Übergängen. Höhen subtil als Schattierung. <b>Aufwand: mittel</b>. Tiefe + Look.</div>
+        <span class="option-tag recommended">Empfehlung</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q9: Pixel-Größe (visuell) -->
+  <div class="question" data-q="9" data-key="pixel_size">
+    <div class="q-label">Frage 9 / 10 · D. Visual</div>
+    <div class="q-title">Pixel-Auflösung pro Asset</div>
+    <div class="q-help">Wie viele Pixel hat ein einzelnes Sprite (LKW, kleines Gebäude)? Mehr Pixel = mehr Detail, langsamere Generation, „weniger retro".</div>
+    <div class="options cols-3">
+      <div class="option" data-value="16">
+        <div class="visual-frame">
+          <canvas class="viz-truck-pixel" id="truck-16" width="16" height="16" style="width:64px;height:64px;background:#4a4a52"></canvas>
+        </div>
+        <div class="option-title">16 × 16 px</div>
+        <div class="option-desc">Sehr retro, Mega-Drive-/SNES-Vibe. Schnell zu generieren. Limitiert in Detail.</div>
+      </div>
+      <div class="option" data-value="32">
+        <div class="visual-frame">
+          <canvas class="viz-truck-pixel" id="truck-32" width="32" height="32" style="width:96px;height:96px;background:#4a4a52"></canvas>
+        </div>
+        <div class="option-title">32 × 32 px</div>
+        <div class="option-desc">Standard. OpenTTD-/Factorio-Niveau. Genug Detail für erkennbare LKWs/Gebäude.</div>
+        <span class="option-tag recommended">Empfehlung</span>
+      </div>
+      <div class="option" data-value="48">
+        <div class="visual-frame">
+          <canvas class="viz-truck-pixel" id="truck-48" width="48" height="48" style="width:128px;height:128px;background:#4a4a52"></canvas>
+        </div>
+        <div class="option-title">48 × 48 px</div>
+        <div class="option-desc">Mehr Detail (sichtbare Räder, Fenster). Mehr Generation-Aufwand. Modernerer Look.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Q10: Stadtbild (visuell) -->
+  <div class="question" data-q="10" data-key="city_style">
+    <div class="q-label">Frage 10 / 10 · D. Visual</div>
+    <div class="q-title">Stadtbild — wie sehen Städte aus?</div>
+    <div class="q-help">Beeinflusst, wie Städte gerendert werden und ob Spieler Einfluss auf Stadtwachstum haben.</div>
+    <div class="options cols-3">
+      <div class="option" data-value="blocks">
+        <div class="visual-frame">
+          <svg class="viz-svg" viewBox="0 0 220 130">
+            <rect width="220" height="130" fill="#2a3038"/>
+            <rect x="30" y="30" width="22" height="22" fill="#a0a0a0"/>
+            <rect x="60" y="30" width="22" height="22" fill="#909090"/>
+            <rect x="90" y="30" width="22" height="22" fill="#a0a0a0"/>
+            <rect x="120" y="30" width="22" height="22" fill="#909090"/>
+            <rect x="150" y="30" width="22" height="22" fill="#a0a0a0"/>
+            <rect x="30" y="60" width="22" height="22" fill="#909090"/>
+            <rect x="60" y="60" width="22" height="22" fill="#a0a0a0"/>
+            <rect x="90" y="60" width="22" height="22" fill="#909090"/>
+            <rect x="120" y="60" width="22" height="22" fill="#a0a0a0"/>
+            <rect x="150" y="60" width="22" height="22" fill="#909090"/>
+            <rect x="30" y="90" width="22" height="22" fill="#a0a0a0"/>
+            <rect x="60" y="90" width="22" height="22" fill="#909090"/>
+            <rect x="90" y="90" width="22" height="22" fill="#a0a0a0"/>
+            <rect x="120" y="90" width="22" height="22" fill="#909090"/>
+          </svg>
+        </div>
+        <div class="option-title">Block-Gebäude (Mini-Metro)</div>
+        <div class="option-desc">Abstrakte gleichförmige Quader. Reine Geometrie. Stadt ist abstrakte Zone.</div>
+      </div>
+      <div class="option" data-value="typed">
+        <div class="visual-frame">
+          <svg class="viz-svg" viewBox="0 0 220 130">
+            <rect width="220" height="130" fill="#3a3530"/>
+            <!-- Häuser -->
+            <rect x="20" y="60" width="20" height="30" fill="#c08060"/>
+            <polygon points="20,60 30,48 40,60" fill="#8a3a3a"/>
+            <rect x="48" y="55" width="20" height="35" fill="#a07050"/>
+            <polygon points="48,55 58,42 68,55" fill="#7a3030"/>
+            <!-- Fabrik -->
+            <rect x="80" y="40" width="40" height="50" fill="#5a5a5a"/>
+            <rect x="92" y="30" width="6" height="14" fill="#5a5a5a"/>
+            <rect x="105" y="25" width="6" height="19" fill="#5a5a5a"/>
+            <!-- Kirche -->
+            <rect x="135" y="50" width="22" height="40" fill="#a09080"/>
+            <polygon points="135,50 146,30 157,50" fill="#705540"/>
+            <rect x="143" y="35" width="6" height="6" fill="#a09080"/>
+            <!-- Mehrfamilienhaus -->
+            <rect x="170" y="35" width="28" height="55" fill="#807060"/>
+            <rect x="174" y="42" width="4" height="4" fill="#3a3530"/>
+            <rect x="184" y="42" width="4" height="4" fill="#3a3530"/>
+            <rect x="190" y="42" width="4" height="4" fill="#3a3530"/>
+            <rect x="174" y="52" width="4" height="4" fill="#3a3530"/>
+            <rect x="184" y="52" width="4" height="4" fill="#3a3530"/>
+            <rect x="190" y="52" width="4" height="4" fill="#3a3530"/>
+          </svg>
+        </div>
+        <div class="option-title">Erkennbare Gebäudetypen</div>
+        <div class="option-desc">Häuser, Fabriken, Kirchen, Wohnblocks — wie OpenTTD. Gebäudetyp = Cargo-Bedarf.</div>
+        <span class="option-tag recommended">Empfehlung</span>
+      </div>
+      <div class="option" data-value="organic">
+        <div class="visual-frame">
+          <svg class="viz-svg" viewBox="0 0 220 130">
+            <rect width="220" height="130" fill="#2a3530"/>
+            <!-- Organic city with clusters -->
+            <g fill="#806050">
+              <rect x="40" y="35" width="14" height="14"/>
+              <rect x="56" y="32" width="12" height="14"/>
+              <rect x="44" y="52" width="10" height="14"/>
+              <rect x="58" y="50" width="14" height="14"/>
+              <rect x="76" y="42" width="12" height="12"/>
+              <rect x="50" y="70" width="14" height="12"/>
+              <rect x="68" y="68" width="12" height="14"/>
+            </g>
+            <g fill="#605040">
+              <rect x="120" y="50" width="16" height="16"/>
+              <rect x="140" y="48" width="14" height="18"/>
+              <rect x="124" y="70" width="12" height="14"/>
+              <rect x="142" y="72" width="14" height="14"/>
+              <rect x="160" y="55" width="14" height="14"/>
+              <rect x="158" y="73" width="12" height="14"/>
+            </g>
+            <!-- Roads connecting -->
+            <line x1="60" y1="50" x2="140" y2="60" stroke="#5a5050" stroke-width="3"/>
+          </svg>
+        </div>
+        <div class="option-title">Organisch (Zellularer Automat)</div>
+        <div class="option-desc">Stadt wächst nach Regeln, bildet eigene Cluster. Wie SimCity. Aufwendig, dafür einzigartig.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="free-text-box">
+    <label>Optional: zusätzliche Anmerkungen, eigene Ideen, Sonderwünsche</label>
+    <textarea class="multi-input" id="notes" placeholder="z.B. Lieblings-Spiel als Referenz, ungewöhnliche Mechanik die rein soll, Was unbedingt vermieden werden muss..."></textarea>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="status-text" id="status">0 / 10 beantwortet</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="reset-btn">Zurücksetzen</button>
+      <button class="btn btn-primary" id="export-btn" disabled>Auswahl exportieren</button>
+    </div>
+  </div>
+</footer>
+
+<div class="export-modal" id="modal">
+  <div class="export-content">
+    <h2>Antworten — kopier diesen Block in den Chat</h2>
+    <pre id="export-text"></pre>
+    <div class="export-actions">
+      <button class="btn btn-primary" id="copy-btn">In Zwischenablage</button>
+      <button class="btn" id="close-btn">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Frage-Labels (für Export)
+  const QUESTION_TITLES = {
+    setting: 'Welt-Setting',
+    tech_level: 'Tech-Niveau',
+    map_size: 'Karten-Größe',
+    competition: 'Konkurrenz-Modus',
+    sabotage: 'Sabotage-Härte',
+    session_format: 'Sitzungs-Format',
+    economy: 'Wirtschaftsmodell',
+    terrain_style: 'Terrain-Schule',
+    pixel_size: 'Pixel-Auflösung',
+    city_style: 'Stadtbild',
+  };
+
+  const VALUE_LABELS = {
+    real: 'Realistische heutige Welt',
+    fictional: 'Fiktive Welt',
+    'alt-history': 'Alternative Geschichte (Steampunk/Sci-Fi/Fantasy)',
+    modern: 'Heute',
+    'modern-plus': 'Heute + leichter Sci-Fi-Twist',
+    scifi: 'Voll-Sci-Fi',
+    small: 'Klein (~200×200)',
+    medium: 'Mittel (~600×600)',
+    large: 'Groß (~2000×2000)',
+    competitive: 'Reine Konkurrenz',
+    alliances: 'Mit Allianzen & Verträgen',
+    coop: 'Kooperativ',
+    economic: 'Nur wirtschaftlich',
+    espionage: 'Wirtschaftlich + Spionage',
+    hard: 'Wirtschaftlich + Spionage + Direkte Sabotage',
+    campaign: 'Kampagne über Wochen (Save & Continue)',
+    short: 'Kurze Sessions (60-90 Min)',
+    async: 'Asynchron / Live-Welt',
+    cashflow: 'Reines Cash-Flow',
+    invest: 'Cash-Flow + Investoren/Aktien/Kredite',
+    reputation: 'Cash-Flow + Reputation als Soft-Currency',
+    'openttd-iso': 'OpenTTD-Stil (3/4-Iso)',
+    'mini-flat': 'Mini-Motorways-Stil (abstrakt flach)',
+    'factorio-flat': 'Factorio-Stil + Höhen-Hint',
+    '16': '16 × 16 px',
+    '32': '32 × 32 px',
+    '48': '48 × 48 px',
+    blocks: 'Block-Gebäude (Mini-Metro-Stil)',
+    typed: 'Erkennbare Gebäudetypen (Häuser/Fabriken/Kirchen)',
+    organic: 'Organisch wachsend (Zellularer Automat)',
+  };
+
+  const STORAGE_KEY = 'cargora-design-survey';
+  const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+  // Init
+  function init() {
+    document.querySelectorAll('.question').forEach(q => {
+      const key = q.dataset.key;
+      const saved = state[key];
+      q.querySelectorAll('.option').forEach(opt => {
+        if (opt.dataset.value === saved) opt.classList.add('selected');
+        opt.addEventListener('click', () => {
+          q.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+          opt.classList.add('selected');
+          state[key] = opt.dataset.value;
+          save();
+        });
+      });
+    });
+    const notesEl = document.getElementById('notes');
+    notesEl.value = state.notes || '';
+    notesEl.addEventListener('input', () => {
+      state.notes = notesEl.value;
+      save();
+    });
+    drawTrucks();
+    save();
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    updateProgress();
+  }
+
+  function updateProgress() {
+    const totalQuestions = 10;
+    const answered = Object.keys(state).filter(k => k !== 'notes' && state[k]).length;
+    document.getElementById('progress').style.width = (answered / totalQuestions * 100) + '%';
+    document.getElementById('status').textContent = answered + ' / ' + totalQuestions + ' beantwortet';
+    document.getElementById('export-btn').disabled = answered < totalQuestions;
+  }
+
+  function drawTruckOnCanvas(canvasId, size) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    // dark background
+    ctx.fillStyle = '#2a3038';
+    ctx.fillRect(0, 0, size, size);
+    // truck body (blue) — proportional
+    const bodyW = Math.floor(size * 0.7);
+    const bodyH = Math.floor(size * 0.4);
+    const bodyX = Math.floor((size - bodyW) / 2);
+    const bodyY = Math.floor((size - bodyH) / 2);
+    ctx.fillStyle = '#3a78c8';
+    ctx.fillRect(bodyX, bodyY, bodyW, bodyH);
+    // cab (lighter)
+    const cabW = Math.floor(bodyW * 0.35);
+    ctx.fillStyle = '#5a98e8';
+    ctx.fillRect(bodyX + bodyW - cabW, bodyY, cabW, bodyH);
+    // window
+    if (size >= 32) {
+      ctx.fillStyle = '#a8c8f0';
+      ctx.fillRect(bodyX + bodyW - cabW + 2, bodyY + 2, cabW - 4, Math.floor(bodyH * 0.4));
+    }
+    // wheels
+    ctx.fillStyle = '#1a1a1a';
+    const wheelSize = Math.max(2, Math.floor(size * 0.12));
+    ctx.fillRect(bodyX + 2, bodyY + bodyH, wheelSize, Math.max(1, Math.floor(wheelSize * 0.6)));
+    ctx.fillRect(bodyX + bodyW - wheelSize - 2, bodyY + bodyH, wheelSize, Math.max(1, Math.floor(wheelSize * 0.6)));
+    // detail at higher resolution
+    if (size >= 48) {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(bodyX + 2, bodyY + bodyH - 3, 4, 2); // headlight
+    }
+  }
+
+  function drawTrucks() {
+    drawTruckOnCanvas('truck-16', 16);
+    drawTruckOnCanvas('truck-32', 32);
+    drawTruckOnCanvas('truck-48', 48);
+  }
+
+  function buildExport() {
+    const lines = [];
+    lines.push('# Cargora Design Survey — Auswahl');
+    lines.push('');
+    lines.push('Datum: ' + new Date().toISOString().slice(0, 10));
+    lines.push('');
+    Object.keys(QUESTION_TITLES).forEach(key => {
+      const value = state[key];
+      const title = QUESTION_TITLES[key];
+      const label = value ? (VALUE_LABELS[value] || value) : '(nicht beantwortet)';
+      lines.push('- **' + title + ':** ' + label);
+    });
+    if (state.notes && state.notes.trim()) {
+      lines.push('');
+      lines.push('## Anmerkungen');
+      lines.push('');
+      lines.push(state.notes.trim());
+    }
+    return lines.join('\n');
+  }
+
+  document.getElementById('export-btn').addEventListener('click', () => {
+    document.getElementById('export-text').textContent = buildExport();
+    document.getElementById('modal').classList.add('show');
+  });
+
+  document.getElementById('close-btn').addEventListener('click', () => {
+    document.getElementById('modal').classList.remove('show');
+  });
+
+  document.getElementById('copy-btn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('export-text').textContent);
+      document.getElementById('copy-btn').textContent = 'Kopiert ✓';
+      setTimeout(() => { document.getElementById('copy-btn').textContent = 'In Zwischenablage'; }, 1500);
+    } catch (e) {
+      alert('Kopieren fehlgeschlagen — markier den Text manuell.');
+    }
+  });
+
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm('Alle Antworten zurücksetzen?')) {
+      Object.keys(state).forEach(k => delete state[k]);
+      localStorage.removeItem(STORAGE_KEY);
+      document.querySelectorAll('.option.selected').forEach(o => o.classList.remove('selected'));
+      document.getElementById('notes').value = '';
+      updateProgress();
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>
