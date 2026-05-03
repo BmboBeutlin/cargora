@@ -265,8 +265,8 @@ export class CabinetIsoScene extends Phaser.Scene {
 
     const start = gridToScreen(this.currentTile.x, this.currentTile.y);
     const startH = this.heights[this.currentTile.y][this.currentTile.x];
-    this.truck = this.add.image(start.x, start.y - 8 - startH * HEIGHT_PIXELS, HEADING_TEXTURE_KEY[this.currentHeading]);
-    this.truck.setScale(0.7);
+    this.truck = this.add.image(start.x, start.y - 10 - startH * HEIGHT_PIXELS, HEADING_TEXTURE_KEY[this.currentHeading]);
+    this.truck.setScale(1.0);
     this.truck.setDepth(this.currentTile.y * DEPTH_PER_ROW + DEPTH_VEHICLE);
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
@@ -444,7 +444,7 @@ export class CabinetIsoScene extends Phaser.Scene {
     this.tweens.add({
       targets: this.truck,
       x: toS.x,
-      y: toS.y - 6 - toH * HEIGHT_PIXELS,
+      y: toS.y - 10 - toH * HEIGHT_PIXELS,
       duration,
       ease: 'Linear',
       onUpdate: (tween) => {
