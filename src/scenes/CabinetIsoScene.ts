@@ -6,6 +6,8 @@ import {
   buildMap,
 } from '../world/map';
 import type { TileType } from '../world/map';
+import { findPath } from '../world/pathfinding';
+import type { Point } from '../world/pathfinding';
 import { renderHud, flashHud } from '../ui/hud';
 
 const TILE_W = 64;
@@ -23,7 +25,6 @@ function gridToScreen(gx: number, gy: number): { x: number; y: number } {
 function screenToGrid(sx: number, sy: number): { x: number; y: number } {
   const dx = (sx - ORIGIN_X) / (TILE_W / 2);
   const dy = (sy - ORIGIN_Y) / (TILE_H / 2);
-  // Math.round, nicht floor: Diamond-Tiles sind um ihre Welt-Koords ZENTRIERT.
   return {
     x: Math.round((dx + dy) / 2),
     y: Math.round((dy - dx) / 2),
@@ -35,11 +36,14 @@ export class CabinetIsoScene extends Phaser.Scene {
   private truck!: Phaser.GameObjects.Polygon;
   private truckTop!: Phaser.GameObjects.Polygon;
   private hoverTile!: Phaser.GameObjects.Polygon;
+  private pathMarkers: Phaser.GameObjects.Arc[] = [];
   private moving = false;
   private currentTile = { ...START_TILE };
   private hoveredTile: { x: number; y: number } | null = null;
   private flashTimer = 0;
   private flashMessage = '';
+  private currentPath: Point[] = [];
+  private pathStepIndex = 0;
 
   constructor() {
     super('cabinet-iso');
@@ -57,12 +61,10 @@ export class CabinetIsoScene extends Phaser.Scene {
         const info = TILE_INFO[this.map[y][x]];
         const { x: sx, y: sy } = gridToScreen(x, y);
         const tile = this.add.polygon(sx, sy, diamond, info.color);
-        // KEIN Stroke mehr — Tiles fließen ineinander
         tile.setDepth(sy);
       }
     }
 
-    // Hover-Highlight (über allen Tiles, unter den Vehicles)
     this.hoverTile = this.add.polygon(0, 0, diamond, 0xffffff, 0);
     this.hoverTile.setStrokeStyle(2, 0xffffff, 0.85);
     this.hoverTile.setDepth(99999);
@@ -96,7 +98,7 @@ export class CabinetIsoScene extends Phaser.Scene {
       const wp = this.cameras.main.getWorldPoint(p.x, p.y);
       const grid = screenToGrid(wp.x, wp.y);
       if (grid.x < 0 || grid.y < 0 || grid.x >= MAP_W || grid.y >= MAP_H) return;
-      this.moveTo(grid.x, grid.y);
+      this.startNavigation(grid.x, grid.y);
     });
 
     this.input.on('wheel', (_p: Phaser.Input.Pointer, _go: unknown, _dx: number, dy: number) => {
@@ -108,24 +110,51 @@ export class CabinetIsoScene extends Phaser.Scene {
     this.updateHud();
   }
 
-  private moveTo(tx: number, ty: number): void {
+  private startNavigation(tx: number, ty: number): void {
     const target = this.map[ty][tx];
-    const info = TILE_INFO[target];
-    if (info.speedMod === 0) {
-      this.flash(`${info.name} – nicht befahrbar`);
+    const targetInfo = TILE_INFO[target];
+    if (targetInfo.speedMod === 0) {
+      this.flash(`${targetInfo.name} – nicht befahrbar`);
       return;
     }
 
-    const startTile = this.map[this.currentTile.y][this.currentTile.x];
-    const startInfo = TILE_INFO[startTile];
-    const avgSpeed = (startInfo.speedMod + info.speedMod) / 2;
+    const path = findPath(
+      { x: this.currentTile.x, y: this.currentTile.y },
+      { x: tx, y: ty },
+      this.map
+    );
 
-    const fromS = gridToScreen(this.currentTile.x, this.currentTile.y);
-    const toS = gridToScreen(tx, ty);
+    if (!path || path.length < 2) {
+      this.flash('Kein Weg gefunden');
+      return;
+    }
+
+    this.drawPath(path);
+    this.currentPath = path;
+    this.pathStepIndex = 1;
+    this.moving = true;
+    this.advancePath();
+  }
+
+  private advancePath(): void {
+    if (this.pathStepIndex >= this.currentPath.length) {
+      this.moving = false;
+      this.clearPathMarkers();
+      this.updateHud();
+      return;
+    }
+
+    const next = this.currentPath[this.pathStepIndex];
+    const fromTile = this.currentPath[this.pathStepIndex - 1];
+    const fromInfo = TILE_INFO[this.map[fromTile.y][fromTile.x]];
+    const toInfo = TILE_INFO[this.map[next.y][next.x]];
+    const avgSpeed = (fromInfo.speedMod + toInfo.speedMod) / 2;
+
+    const fromS = gridToScreen(fromTile.x, fromTile.y);
+    const toS = gridToScreen(next.x, next.y);
     const distance = Math.hypot(toS.x - fromS.x, toS.y - fromS.y);
     const duration = distance / (BASE_PIXELS_PER_MS * avgSpeed);
 
-    this.moving = true;
     this.tweens.add({
       targets: [this.truck, this.truckTop],
       x: toS.x,
@@ -137,12 +166,41 @@ export class CabinetIsoScene extends Phaser.Scene {
         this.truckTop.setDepth(this.truck.y + 1001);
       },
       onComplete: () => {
-        this.moving = false;
-        this.currentTile = { x: tx, y: ty };
+        this.currentTile = { x: next.x, y: next.y };
+        this.consumePathMarker();
+        this.pathStepIndex++;
         this.updateHud();
+        this.advancePath();
       },
     });
-    this.updateHud();
+  }
+
+  private drawPath(path: Point[]): void {
+    this.clearPathMarkers();
+    for (let i = 1; i < path.length; i++) {
+      const p = path[i];
+      const s = gridToScreen(p.x, p.y);
+      const isLast = i === path.length - 1;
+      const marker = this.add.circle(
+        s.x,
+        s.y,
+        isLast ? 5 : 3,
+        isLast ? 0xf0882a : 0xffffff,
+        isLast ? 1 : 0.55
+      );
+      marker.setDepth(s.y + 500);
+      this.pathMarkers.push(marker);
+    }
+  }
+
+  private consumePathMarker(): void {
+    const marker = this.pathMarkers.shift();
+    if (marker) marker.destroy();
+  }
+
+  private clearPathMarkers(): void {
+    for (const m of this.pathMarkers) m.destroy();
+    this.pathMarkers = [];
   }
 
   private flash(message: string): void {
@@ -171,7 +229,7 @@ export class CabinetIsoScene extends Phaser.Scene {
         }
       : null;
     renderHud({
-      mode: 'Cabinet-Iso',
+      mode: 'Cabinet-Iso · A*-Pathfinding',
       tile,
       position: this.currentTile,
       flashMessage: this.flashMessage,
