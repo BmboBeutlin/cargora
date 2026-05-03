@@ -10,7 +10,6 @@ import { findPath } from '../world/pathfinding';
 import type { Point } from '../world/pathfinding';
 import { renderHud, flashHud } from '../ui/hud';
 import {
-  createTruckSpriteSet,
   createGrassTileSprite,
   createSchotterTileSprite,
   createFeldwegTileSprite,
@@ -20,6 +19,13 @@ import {
   SPRITE_KEYS,
 } from '../assets/sprites';
 import type { Heading } from '../assets/sprites';
+import {
+  VEHICLE_SHEET_PATH,
+  VEHICLE_FRAME_W,
+  VEHICLE_FRAME_H,
+  HEADING_FRAME_MAP,
+  VEHICLE_TEXTURE_KEY,
+} from '../assets/sprites/vehicle-sheet';
 
 const TILE_W = 64;
 const TILE_H = 32;
@@ -27,12 +33,6 @@ const TILE_H = 32;
 const ORIGIN_X = 480 - ((MAP_W - 1) - (MAP_H - 1)) * (TILE_W / 4);
 const ORIGIN_Y = 350 - ((MAP_W - 1) + (MAP_H - 1)) * (TILE_H / 4);
 
-const HEADING_TEXTURE_KEY: Record<Heading, string> = {
-  se: SPRITE_KEYS.truckSE,
-  nw: SPRITE_KEYS.truckNW,
-  sw: SPRITE_KEYS.truckSW,
-  ne: SPRITE_KEYS.truckNE,
-};
 
 // Texture-Key für eine Asphalt-Auto-Tile-Variante
 function asphaltKey(connKey: string): string {
@@ -93,6 +93,13 @@ export class CabinetIsoScene extends Phaser.Scene {
     super('cabinet-iso');
   }
 
+  preload(): void {
+    this.load.spritesheet(VEHICLE_TEXTURE_KEY, VEHICLE_SHEET_PATH, {
+      frameWidth: VEHICLE_FRAME_W,
+      frameHeight: VEHICLE_FRAME_H,
+    });
+  }
+
   create(): void {
     this.registerSpriteTextures();
     this.map = buildMap();
@@ -126,8 +133,8 @@ export class CabinetIsoScene extends Phaser.Scene {
     this.hoverTile.setVisible(false);
 
     const start = gridToScreen(this.currentTile.x, this.currentTile.y);
-    this.truck = this.add.image(start.x, start.y - 6, HEADING_TEXTURE_KEY[this.currentHeading]);
-    this.truck.setScale(0.65); // LKW kleiner: ca 1/3 Tile-Breite, OpenTTD-Maßstab
+    this.truck = this.add.image(start.x, start.y - 6, VEHICLE_TEXTURE_KEY, HEADING_FRAME_MAP[this.currentHeading]);
+    this.truck.setScale(0.85); // Sheet-Sprites sind 40x48, etwas größer dargestellt
     this.truck.setDepth(start.y + 1000);
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
@@ -176,17 +183,13 @@ export class CabinetIsoScene extends Phaser.Scene {
       }
     }
 
-    const truckSet = createTruckSpriteSet();
-    if (!tex.exists(SPRITE_KEYS.truckSE)) tex.addCanvas(SPRITE_KEYS.truckSE, truckSet.se);
-    if (!tex.exists(SPRITE_KEYS.truckNW)) tex.addCanvas(SPRITE_KEYS.truckNW, truckSet.nw);
-    if (!tex.exists(SPRITE_KEYS.truckSW)) tex.addCanvas(SPRITE_KEYS.truckSW, truckSet.sw);
-    if (!tex.exists(SPRITE_KEYS.truckNE)) tex.addCanvas(SPRITE_KEYS.truckNE, truckSet.ne);
+    // Truck-Sprite kommt jetzt aus vehicles.png (preload), nicht mehr programmatisch
   }
 
   private setHeading(h: Heading): void {
     if (h === this.currentHeading) return;
     this.currentHeading = h;
-    this.truck.setTexture(HEADING_TEXTURE_KEY[h]);
+    this.truck.setFrame(HEADING_FRAME_MAP[h]);
   }
 
   private startNavigation(tx: number, ty: number): void {

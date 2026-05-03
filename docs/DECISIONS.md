@@ -355,6 +355,71 @@ Patrick: „Ok, dann erstmal ohne Era-System. Dann können wir das ja noch reinm
 
 ---
 
+---
+
+## ADR-010: Spline-Hybrid-Architektur für Straßen + Schienen (Pfad B)
+
+**Datum:** 2026-05-03 (späte Nacht)
+**Status:** Akzeptiert — Migration in Phase 2 (graduell)
+**Entscheider:** Patrick
+
+### Kontext
+
+Tile-basiertes Auto-Tiling für Straßen (ADR-007 Cabinet-Iso, plus Auto-Tile-System) hat strukturelle Limits:
+- Nur 4 Welt-Achsen-Richtungen (8 mit Diagonal-Tiling) — keine smoothen Kurven
+- Brücken und Tunnel müssten als spezielle Tile-Varianten implementiert werden — komplex und visuell starr
+- Höhenmechanik (Berge/Täler) für Straßen mit Iso-Stufen geht, ist aber bei beliebigen Winkeln unmöglich
+
+Patrick hat angefragt: „Vector/Spline klingt aber so als bräuchten wir das, gerade auch wenn Brücken und Tunnel kommen sollen". Nach Diskussion 4 Pfade (Tile-bleiben / Spline-Hybrid / Unity / nachdenken) hat Patrick **Pfad B (Spline-Hybrid)** gewählt.
+
+### Entscheidung
+
+**Spline-Hybrid:** Tiles für Boden + Splines für Straßen/Schienen.
+
+- **Tile-System bleibt** für: Gras, Schotter-Bezirke, Feldweg, Wald, Wasser, Berge (Höhe pro Tile)
+- **Spline-System neu für:** Asphalt-Straßen, Schienen, später ggf. andere Wegtypen
+- **Brücken/Tunnel:** Splines mit Z-Höhe pro Knoten — beliebige Höhen, beliebige Winkel
+- **Pathfinding:** Graph-A* auf Knoten/Kanten statt Grid-A* auf Tiles
+- **LKW-Bewegung:** Spline-Following mit Bezier-Interpolation statt Tile-zu-Tile-Schritt
+
+### Migration-Plan (graduell, nicht Big-Bang)
+
+| Schritt | Was | Status |
+|---------|-----|--------|
+| 1. Datenmodell | `src/world/road-graph.ts` mit RoadNode + RoadEdge + RoadGraph | ✅ initial skeleton |
+| 2. Renderer | `src/world/spline-renderer.ts` zeichnet Edges als Asphalt-Pixel-Linien mit Iso-Slope | TBD |
+| 3. Demo-Spline | Eine Test-Straße im Spiel sichtbar (statisch, ohne Funktion) | TBD |
+| 4. Pathfinding | Graph-A* in `src/world/pathfinding.ts` als Variante | TBD |
+| 5. LKW auf Spline | Truck folgt Spline statt Tile-Schritten, Heading aus Spline-Tangente | TBD |
+| 6. Asphalt-Tiles ausphasen | `tile-asphalt` aus Map raus, Spline-Layer übernimmt | TBD |
+| 7. Karten-Editor | Click-Drag um Splines zu bauen (Knoten setzen, Kurven ziehen) | TBD |
+| 8. Brücken/Tunnel | Z-Höhe pro Knoten + Pfeiler-Sprites + Tunnel-Eingangs-Sprites | TBD |
+| 9. Multiplayer-Anpassung | Server-Schema: Vehicle-Position als `{ edgeId, t, lane }` statt `{ x, y }` | TBD |
+
+**Aufwand insgesamt:** ~6-10 Tage Vollzeit, verteilt über mehrere Sessions.
+
+### Begründung
+
+- **Brücken/Tunnel/Berge sind explizite Vision-Features.** Tile-basiert wäre starr und visuell limitiert.
+- **Hybrid statt Volle-Migration:** Tile-System für Boden bleibt nutzbar. Sprite-Pipeline, Camera-System, Multiplayer-Architektur größtenteils erhalten.
+- **Cities-Skylines-Optik mit smoothen Kurven** ist erreichbar, ohne die volle 3D-Komplexität von Unity.
+- **Engine-Wechsel zu Unity ist abgelehnt** (siehe ADR-009): hoher Aufwand für minimalen Mehrwert bei 2D-Pixel-Art-Spiel.
+
+### Konsequenzen
+
+- **Bisheriges Auto-Tiling-System (ADR-007 + Asphalt-Auto-Tiling)** wird ausgephast: bleibt vorerst aktiv, Spline-Layer wächst parallel, am Ende Asphalt-Tiles raus.
+- **Pathfinding-Komplexität wächst:** zwei Systeme — Tile-Boden + Spline-Straßen. Pathfinding muss beide kennen.
+- **Karten-Editor-Komplexität wächst:** Tile-Painting für Boden + Spline-Bauen für Straßen.
+- **Multiplayer-Server-Schema (Stub in `server/`) muss angepasst werden:** Vehicle-Position als `{ edgeId, t }`.
+- **Brücken-Sprites + Tunnel-Sprites** müssen extern besorgt oder programmatisch generiert werden.
+
+### Alternativen verworfen
+
+- **Pfad A (Tile-bleiben + Höhen):** OpenTTD-Niveau erreichbar, aber starrere Optik. Zu limitiert für Patricks Vision.
+- **Pfad C (Unity):** Massiver Aufwand, Engine-Lernen widerspricht Patricks „kein Programmieren lernen"-Constraint.
+
+---
+
 ## Template für neue ADRs
 
 ```markdown
