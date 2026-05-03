@@ -3,13 +3,11 @@ import {
   MAP_W, MAP_H,
   TILE_INFO, BASE_PIXELS_PER_MS,
   START_TILE,
-  buildMap,
+  buildWorld,
 } from '../world/map';
 import type { TileType } from '../world/map';
 import { findPath } from '../world/pathfinding';
 import type { Point } from '../world/pathfinding';
-import { createDemoGraph } from '../world/road-graph';
-import { renderGraph } from '../world/spline-renderer';
 import { renderHud, flashHud } from '../ui/hud';
 import {
   createTruckSpriteSet,
@@ -25,6 +23,7 @@ import type { Heading } from '../assets/sprites';
 
 const TILE_W = 64;
 const TILE_H = 32;
+const HEIGHT_PIXELS = 8; // 1 Welt-Z = 8 Pixel höher auf dem Bildschirm
 
 const ORIGIN_X = 480 - ((MAP_W - 1) - (MAP_H - 1)) * (TILE_W / 4);
 const ORIGIN_Y = 350 - ((MAP_W - 1) + (MAP_H - 1)) * (TILE_H / 4);
@@ -80,6 +79,7 @@ function getAsphaltConnectionsKey(map: TileType[][], x: number, y: number): stri
 
 export class CabinetIsoScene extends Phaser.Scene {
   private map: TileType[][] = [];
+  private heights: number[][] = [];
   private truck!: Phaser.GameObjects.Image;
   private hoverTile!: Phaser.GameObjects.Polygon;
   private pathMarkers: Phaser.GameObjects.Arc[] = [];
@@ -98,12 +98,16 @@ export class CabinetIsoScene extends Phaser.Scene {
 
   create(): void {
     this.registerSpriteTextures();
-    this.map = buildMap();
+    const world = buildWorld();
+    this.map = world.tiles;
+    this.heights = world.heights;
 
     for (let y = 0; y < MAP_H; y++) {
       for (let x = 0; x < MAP_W; x++) {
         const tile = this.map[y][x];
+        const h = this.heights[y][x];
         const { x: sx, y: sy } = gridToScreen(x, y);
+        const renderY = sy - h * HEIGHT_PIXELS;
         let textureKey: string;
         if (tile === 'asphalt') {
           const connKey = getAsphaltConnectionsKey(this.map, x, y);
@@ -115,14 +119,11 @@ export class CabinetIsoScene extends Phaser.Scene {
         } else {
           textureKey = SPRITE_KEYS.tileFeldweg;
         }
-        const img = this.add.image(sx, sy, textureKey);
-        img.setDepth(sy);
+        const img = this.add.image(sx, renderY, textureKey);
+        // Depth: grundsätzlich Iso-Y-Sort, höhere Tiles bekommen leichten Bonus
+        img.setDepth(sy + h * 0.5);
       }
     }
-
-    // Pfad B Demo: Spline-Straßen über die Tiles legen (3 Test-Edges)
-    const graph = createDemoGraph();
-    renderGraph(this, graph, (gx, gy) => gridToScreen(gx, gy));
 
     const halfW = TILE_W / 2;
     const halfH = TILE_H / 2;
@@ -133,9 +134,10 @@ export class CabinetIsoScene extends Phaser.Scene {
     this.hoverTile.setVisible(false);
 
     const start = gridToScreen(this.currentTile.x, this.currentTile.y);
-    this.truck = this.add.image(start.x, start.y - 6, HEADING_TEXTURE_KEY[this.currentHeading]);
+    const startH = this.heights[this.currentTile.y][this.currentTile.x];
+    this.truck = this.add.image(start.x, start.y - 6 - startH * HEIGHT_PIXELS, HEADING_TEXTURE_KEY[this.currentHeading]);
     this.truck.setScale(0.65);
-    this.truck.setDepth(start.y + 1000);
+    this.truck.setDepth(start.y + 1000 + startH);
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
       const wp = this.cameras.main.getWorldPoint(p.x, p.y);
@@ -241,13 +243,14 @@ export class CabinetIsoScene extends Phaser.Scene {
 
     const fromS = gridToScreen(fromTile.x, fromTile.y);
     const toS = gridToScreen(next.x, next.y);
+    const toH = this.heights[next.y][next.x];
     const distance = Math.hypot(toS.x - fromS.x, toS.y - fromS.y);
     const duration = distance / (BASE_PIXELS_PER_MS * avgSpeed);
 
     this.tweens.add({
       targets: this.truck,
       x: toS.x,
-      y: toS.y - 6,
+      y: toS.y - 6 - toH * HEIGHT_PIXELS,
       duration,
       ease: 'Linear',
       onUpdate: () => {

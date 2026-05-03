@@ -360,8 +360,8 @@ Patrick: „Ok, dann erstmal ohne Era-System. Dann können wir das ja noch reinm
 ## ADR-010: Spline-Hybrid-Architektur für Straßen + Schienen (Pfad B)
 
 **Datum:** 2026-05-03 (späte Nacht)
-**Status:** Akzeptiert — Migration in Phase 2 (graduell)
-**Entscheider:** Patrick
+**Status:** **VERWORFEN — siehe ADR-011 für Begründung**
+**Entscheider:** Patrick (initial akzeptiert, dann nach Spline-Demo zurückgenommen)
 
 ### Kontext
 
@@ -417,6 +417,67 @@ Patrick hat angefragt: „Vector/Spline klingt aber so als bräuchten wir das, g
 
 - **Pfad A (Tile-bleiben + Höhen):** OpenTTD-Niveau erreichbar, aber starrere Optik. Zu limitiert für Patricks Vision.
 - **Pfad C (Unity):** Massiver Aufwand, Engine-Lernen widerspricht Patricks „kein Programmieren lernen"-Constraint.
+
+---
+
+---
+
+## ADR-011: Pfad A — Tile-System mit Höhen, Brücken und Tunneln (statt Spline)
+
+**Datum:** 2026-05-03 (späte Nacht, nach Spline-Demo)
+**Status:** Akzeptiert — Pfad A bestätigt, Pfad B (ADR-010) verworfen
+**Entscheider:** Patrick
+
+### Kontext
+
+ADR-010 hatte Spline-Hybrid (Pfad B) gewählt, mit dem Argument für smoothe Brücken/Tunnel-Optik. Nach erstem Spline-Demo-Render hat Patrick neu evaluiert:
+
+> „runde straßen sind nicht gewünscht und die lkw und co modelle sind nicht rund machbar"
+
+**Erkenntnis:** Render-Stil und Bewegungs-System müssen zusammenpassen. Pixel-Art-Iso-Vehicles haben diskrete Heading-Sprites (4 oder 8 Richtungen). Auf geschwungenen Splines würden sie visuell brechen — der LKW würde „springen" zwischen Heading-Sprites entlang einer Kurve. OpenTTD, Transport Tycoon Deluxe und SimCity 2000 haben aus genau diesem Grund alle nur Tile-Achsen-basierte Straßen, keine echten Splines.
+
+### Entscheidung
+
+**Pfad A (ursprünglich verworfen) wird wieder aufgenommen.** Tile-System bleibt vollständig, erweitert um:
+
+- **Höhen pro Tile** (Berge/Täler) — `heights: number[][]` in WorldData ist bereits vorbereitet, wird aktiviert
+- **Brücken als Tile-Variante** mit `bridgeOver`-Flag und sichtbaren Pfeilern
+- **Tunnel-Eingänge** als spezielle Tile-Sprites
+- Optional: **8-Nachbarn-Auto-Tiling** für Diagonal-Straßen (256 Sprite-Varianten) — falls Patrick später will
+
+### Begründung
+
+- **Render-Konsistenz:** Diskrete Pixel-Art-Vehicles passen zu Tile-Achsen-Straßen, nicht zu Splines
+- **OpenTTD-Vorbild:** 30 Jahre bewährtes Pattern, klar funktioniert mit Iso-Pixel-Art
+- **Geringerer Migrations-Aufwand:** Auto-Tile-System bleibt komplett, nur Erweiterung um Höhen + Brücken-Tile-Varianten
+- **Spline-Code bleibt im Repo** als unused/deprecated für mögliche spätere Sub-Features (z.B. Maglev-Schienen in Era 5)
+
+### Neuer Migrations-Plan (Pfad A)
+
+| Schritt | Was | Aufwand | Status |
+|---------|-----|---------|--------|
+| 1. Höhen-System aktivieren | gridToScreen + height, Demo-Berge | 1-2h | TBD |
+| 2. Höhen-Wand-Sprites | Sichtbare Steilstufen zwischen Tile-Höhen | 2-3h | TBD |
+| 3. Brücken-Tile-Varianten | Asphalt-Brücken-Sprites + bridgeOver-Flag | 3-5h | TBD |
+| 4. Tunnel-Eingänge | Tile-Sprites mit Tunnel-Loch + Tunnel-Logik | 2-3h | TBD |
+| 5. 8-Nachbarn-Auto-Tiling | Diagonal-Straßen (optional, Phase 2.5+) | 4-6h | TBD |
+
+**Gesamt für Pfad-A-Komplett:** ~12-19h Engine-Erweiterung. Verteilt über mehrere Sessions.
+
+### Konsequenzen
+
+- **ADR-010 verworfen,** aber Datenmodell und Renderer bleiben im Repo:
+  - `src/world/road-graph.ts` — unused, evtl. später für Sub-Features
+  - `src/world/spline-renderer.ts` — unused, evtl. später
+- **Tile-System bleibt zentrales Engine-Paradigma**
+- **Phasen-Plan in GAME_DESIGN.md V3 bleibt gültig** — Phase 1 (Modern), Era-Progression als Phase 4+
+- **Auto-Tiling-Asphalt aktiviert weiterhin** (ADR-007 Auto-Tile-System bleibt vollständig)
+
+### Patrick-Quote für die Geschichte
+
+> „runde straßen sind nicht gewünscht und die lkw und co modelle sind nicht rund machbar"
+
+Das ist die Kern-Erkenntnis: Engine-Wahl muss Asset-Style entsprechen, nicht umgekehrt.
 
 ---
 

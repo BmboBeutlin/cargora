@@ -86,9 +86,16 @@ export function buildWorld(): WorldData {
   const tiles = MAP_ASCII.map((row) =>
     row.split('').map((ch) => ASCII_TO_TILE[ch] ?? 'gras')
   );
-  const heights = Array.from({ length: MAP_H }, () => new Array(MAP_W).fill(0));
+  const heights: number[][] = Array.from({ length: MAP_H }, () => new Array<number>(MAP_W).fill(0));
   const biomes = Array.from({ length: MAP_H }, () => new Array(MAP_W).fill(null));
   const eras = Array.from({ length: MAP_H }, () => new Array(MAP_W).fill(null));
+
+  // Demo-Berg: kleiner Hügel auf den Gras-Tiles zwischen den oberen Schotter-Bezirken (Pfad A Schritt 1)
+  heights[4][10] = 1;
+  heights[4][11] = 1;
+  heights[5][10] = 2;
+  heights[5][11] = 1;
+
   return {
     width: MAP_W,
     height: MAP_H,
