@@ -100,6 +100,23 @@ Wenn du das hier liest: Cargora ist auf einem soliden OpenTTD-Niveau. Refresh de
 
 ---
 
+### Update Patrick-Audit-Run (kurz vor Sunset)
+
+Patrick hat zwischendurch einen Audit angefragt: „Brücken kaputt, LKW falsch, Straßen passen nicht". Bug-Fix-Sweep:
+
+| Bug | Fix | Commit |
+|-----|-----|--------|
+| LKW: 2 Sprites gestapelt | Sprite-Sheet hat unregelmäßige Frame-Sizes (Pixel-Analyse via Playwright). Zurück zu programmatischem Truck. | `4935406` |
+| Brücken-Asphalt unsichtbar | `createAsphaltOverlaySprite(c, false)` rendert nun voller Asphalt-Diamond statt nur Streifen. | `4935406` |
+| Asphalt-Tiles haben Gaps | Streifen-Breite von 8 auf 12 px (overlapping bei Nachbar-Tiles). | `4935406` |
+| Tunnel kaum sichtbar | Sprite vergrößert auf 48×42 mit Stein-Quader-Mörtel-Linien. | `93c391d` |
+| LKW zu klein | Scale 0.7 → 1.0, y-Offset von 6 → 10. | `03ab5e2` |
+| Brücke nur 1 Demo | Zweite Brücke (3 Tiles) hinzu. | `93c391d` |
+
+**Final-HEAD:** `03ab5e2` — alle gemeldeten Bugs gefixt.
+
+---
+
 ## 2026-05-03 (Nacht 2) — Map-Fix + A* live + MP-Server-Stub fertig
 
 **Dauer:** ~30 Min (mit zwei Background-Agents) · **Claude-Modell:** Opus 4.7 (1M context)
