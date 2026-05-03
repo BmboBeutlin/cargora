@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<title>Cargora — Sprite-Sheet Inspector</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: #0d0f13; color: #c8d0db;
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: 1.55; min-height: 100vh;
+    padding: 32px 24px 100px;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 1.8rem; margin-bottom: 8px; }
+  h1 b { color: #f0882a; }
+  p { color: #7a8494; margin-bottom: 16px; font-size: 0.9rem; }
+  section { margin-bottom: 40px; padding: 16px; background: #171b22; border-radius: 10px; border: 1px solid rgba(255,255,255,0.07); }
+  h2 { font-size: 1.1rem; margin-bottom: 12px; }
+  .controls { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 16px; }
+  label { font-size: 0.8rem; color: #7a8494; }
+  input[type="number"] {
+    background: #0d0f13; border: 1px solid rgba(255,255,255,0.18);
+    color: #c8d0db; padding: 6px 10px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.9rem; width: 70px;
+  }
+  .canvas-wrap {
+    background: #0d0f13; padding: 16px; border-radius: 6px; overflow-x: auto;
+    background-image:
+      linear-gradient(45deg, #1a1d22 25%, transparent 25%),
+      linear-gradient(-45deg, #1a1d22 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #1a1d22 75%),
+      linear-gradient(-45deg, transparent 75%, #1a1d22 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  }
+  canvas { image-rendering: pixelated; display: block; }
+  .frame-grid {
+    display: grid; gap: 6px; margin-top: 16px;
+  }
+  .frame { background: #1a1e25; border: 1px solid rgba(255,255,255,0.07); border-radius: 4px; padding: 6px; text-align: center; }
+  .frame canvas { margin: 0 auto; }
+  .frame-label { font-size: 0.65rem; color: #7a8494; font-family: 'JetBrains Mono', monospace; margin-top: 4px; }
+  .info-box { background: #1e2229; padding: 12px; border-radius: 6px; font-size: 0.82rem; margin-top: 12px; }
+  .info-box code { background: #0d0f13; padding: 1px 5px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; color: #f0882a; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1><b>Cargora</b> — Sprite-Sheet Inspector</h1>
+  <p>Original-Sheet: <code>vehicles.png</code> (680×48 px). Probiere verschiedene Frame-Größen, finde welche passt.</p>
+
+  <section>
+    <h2>Original-Sheet (3× vergrößert)</h2>
+    <div class="canvas-wrap">
+      <canvas id="orig-canvas"></canvas>
+    </div>
+  </section>
+
+  <section>
+    <h2>Slicing-Inspektor</h2>
+    <div class="controls">
+      <label>Frame-Breite: <input type="number" id="fw" value="40" min="8" max="128" /></label>
+      <label>Frame-Höhe: <input type="number" id="fh" value="48" min="8" max="128" /></label>
+      <label>Frame-Anzahl: <span id="frame-count" style="color:#f0882a;font-weight:700">17</span></label>
+    </div>
+    <div class="canvas-wrap">
+      <canvas id="grid-canvas"></canvas>
+    </div>
+    <div class="frame-grid" id="frame-grid" style="grid-template-columns: repeat(8, 1fr);"></div>
+    <div class="info-box">
+      <b>Aufgabe:</b> Probiere Werte (32, 40, 48, 60), sag mir die richtige Frame-Größe + welche Frame-Index-Nummer welcher Heading entspricht.
+      <br><br>
+      <b>Heading-Konvention:</b><br>
+      <code>SE</code> = Truck schaut nach <b>rechts-unten</b> (Welt: X+)<br>
+      <code>NW</code> = Truck schaut nach <b>links-oben</b> (Welt: X-)<br>
+      <code>SW</code> = Truck schaut nach <b>links-unten</b> (Welt: Y+)<br>
+      <code>NE</code> = Truck schaut nach <b>rechts-oben</b> (Welt: Y-)
+    </div>
+  </section>
+</div>
+
+<script>
+const SCALE = 3;
+const SHEET_PATH = '/c/Users/patrick/cargora/public/sprites/vehicles.png';
+
+const img = new Image();
+img.crossOrigin = 'anonymous';
+img.onload = () => { renderAll(); };
+img.onerror = () => {
+  document.body.insertAdjacentHTML('afterbegin',
+    '<div style="background:#7a2828;padding:14px;color:#fff;margin-bottom:20px;border-radius:8px">' +
+    'Konnte Sheet nicht laden via file://. Öffne stattdessen über <code>npm run dev</code> + <code>http://localhost:5173/docs/sprite-inspector.html</code>, oder kopiere vehicles.png in denselben Ordner wie diese HTML.' +
+    '</div>');
+};
+img.src = './sprite-inspector-img.png?t=' + Date.now();
+
+// Fallback: auch direkten Pfad probieren
+setTimeout(() => {
+  if (!img.complete || img.naturalWidth === 0) {
+    img.src = '../public/sprites/vehicles.png';
+  }
+}, 200);
+setTimeout(() => {
+  if (!img.complete || img.naturalWidth === 0) {
+    img.src = 'vehicles.png';
+  }
+}, 400);
+
+function renderAll() {
+  renderOriginal();
+  renderGrid();
+}
+
+function renderOriginal() {
+  const c = document.getElementById('orig-canvas');
+  c.width = img.width * SCALE;
+  c.height = img.height * SCALE;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+}
+
+function renderGrid() {
+  const fw = parseInt(document.getElementById('fw').value);
+  const fh = parseInt(document.getElementById('fh').value);
+  const count = Math.floor(img.width / fw);
+  document.getElementById('frame-count').textContent = count;
+
+  const c = document.getElementById('grid-canvas');
+  c.width = img.width * SCALE;
+  c.height = img.height * SCALE;
+  const ctx = c.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  // Grid overlay
+  ctx.strokeStyle = '#f0882a';
+  ctx.lineWidth = 2;
+  for (let i = 0; i <= count; i++) {
+    const x = i * fw * SCALE;
+    ctx.beginPath();
+    ctx.moveTo(x, 0); ctx.lineTo(x, c.height);
+    ctx.stroke();
+  }
+  ctx.beginPath();
+  ctx.moveTo(0, 0); ctx.lineTo(c.width, 0);
+  ctx.moveTo(0, fh * SCALE); ctx.lineTo(c.width, fh * SCALE);
+  ctx.stroke();
+  // Index labels
+  ctx.fillStyle = '#f0882a';
+  ctx.font = 'bold 14px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  for (let i = 0; i < count; i++) {
+    ctx.fillText(String(i), i * fw * SCALE + fw * SCALE / 2, fh * SCALE + 16);
+  }
+
+  renderFrameGrid(fw, fh, count);
+}
+
+function renderFrameGrid(fw, fh, count) {
+  const grid = document.getElementById('frame-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const div = document.createElement('div');
+    div.className = 'frame';
+    const fc = document.createElement('canvas');
+    fc.width = fw * 4;
+    fc.height = fh * 4;
+    const ctx = fc.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, i * fw, 0, fw, fh, 0, 0, fc.width, fc.height);
+    div.appendChild(fc);
+    const label = document.createElement('div');
+    label.className = 'frame-label';
+    label.textContent = '#' + i;
+    div.appendChild(label);
+    grid.appendChild(div);
+  }
+}
+
+document.getElementById('fw').addEventListener('input', renderAll);
+document.getElementById('fh').addEventListener('input', renderAll);
+</script>
+</body>
+</html>
