@@ -4,6 +4,57 @@
 
 ---
 
+## 2026-05-03 (Spät-Abend) — Survey V2 + Cabinet-Iso live im Spiel
+
+**Dauer:** ~30 Min · **Claude-Modell:** Opus 4.7 (1M context)
+
+### Was gebaut
+
+- **Survey V2 von Patrick ausgefüllt** (Perspektive Cabinet-Iso, alle 5 Eras, Spieler-Tempo)
+- **Code-Refactoring** aus monolithischem `main.ts` zu Multi-File:
+  - `src/world/map.ts` — Tile-Definitionen + Karten-Daten (geteilt zwischen Scenes)
+  - `src/scenes/TopDownScene.ts` — bisherige Top-Down-Logik
+  - `src/scenes/CabinetIsoScene.ts` — neue Cabinet-Iso-Scene mit Diamond-Tiles + Y-Sort
+  - `src/ui/hud.ts` — gemeinsame HUD-Render-Funktion
+  - `src/main.ts` — Game-Config + Scene-Switcher (Taste `I` oder Button)
+- **Live im Browser vergleichbar:** Patrick kann zwischen Top-Down und Cabinet-Iso wechseln, beide haben gleiche Spielmechanik (Klick-Fahren, Speed-Modifier)
+- **Doku-Updates:**
+  - `GAME_DESIGN.md`: V2-Antworten konsolidiert + Glockenkurve der Era-Tiefen
+  - `STYLE_GUIDE.md`: Cabinet-Iso-Math + Tile-Größen finalisiert
+  - `DECISIONS.md`: ADR-007 (Cabinet-Iso) + ADR-008 (Era-Progression mit Spieler-Tempo + Glocke)
+
+### Patricks Survey-V2-Antworten
+
+- **Perspektive:** Cabinet-Iso (RollerCoaster Tycoon-Stil)
+- **Eras:** Alle 5 (Mittelalter, Frühe Neuzeit, Industrialisierung, Moderne, Sci-Fi-Twist)
+- **Era-Tempo:** Spieler bestimmen Era-Übergang
+- **Anmerkungen:**
+  - Spieler-Tempo individuell mit Tradeoffs (Pioneer-Vorteil + Pioneer-Risiko)
+  - Glockenkurve: Mittelalter+Sci-Fi schmal, Industrialisierung+Moderne breit
+  - Live-Demo der Cabinet-Iso angefragt → eingebaut
+
+### Technische Notizen
+
+- **Phaser 4 Multi-Scene:** `game.scene.start(key)` + `game.scene.stop(key)` funktionieren wie erwartet, Scene-Switch ist instant
+- **Cabinet-Iso-Math:** `gridToScreen(gx, gy) = (ORIGIN + (gx-gy)*W/2, ORIGIN + (gx+gy)*H/2)` mit TILE_W=64, TILE_H=32
+- **Y-Sort über `setDepth(screenY)`:** Tiles weiter unten (näher am Spieler) werden über Tiles oben gerendert
+- **Truck als 2-Polygon-Stack** (Body + Top) gibt 2.5D-Look ohne echte Sprites
+
+### Nächste Session — Vorschläge
+
+1. **Patrick testet beide Modi im Browser** und gibt Feedback (welche Perspektive fühlt sich „richtig" an?)
+2. **Falls Cabinet-Iso bestätigt:** Top-Down-Scene entfernen, Cabinet-Iso wird Default
+3. **Falls noch Anpassungen nötig:** Iso-Winkel/Tile-Verhältnis variieren (z.B. flacher → 64×24)
+4. **Erste Era-1-Sprites generieren** (Pferdewagen, Trampelpfad-Tile, Marktplatz-Gebäude) — alle in Cabinet-Iso-Look
+
+### Lessons aus dieser Session
+
+- **Live-Code-Vergleich schlägt Survey-Bilder.** Die SVG-Skizzen in V2-Survey waren grobe Approximationen. Erst die echte Implementation im Browser zeigt, wie sich die Steuerung anfühlt. Pattern: Wo möglich, Live-Code statt statische Mockups.
+- **Refactoring zu Multi-File hat sich gelohnt** — von 175 LOC monolithisch auf 5 Dateien strukturiert, die alle <100 LOC sind. Skaliert für die nächsten 100+ Code-Sessions.
+- **Y-Sort-via-setDepth ist die einfachste Iso-Render-Reihenfolge.** Keine Sortier-Listen, keine Container-Hierarchien — nur Depth = Y-Position. Skaliert auf tausende Entities.
+
+---
+
 ## 2026-05-03 (Abend) — Survey V1 + Vision-Pivot zu Era-Progression
 
 **Dauer:** ~45 Min · **Claude-Modell:** Opus 4.7 (1M context)

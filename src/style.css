@@ -44,3 +44,24 @@ html, body {
   font-weight: 800;
   letter-spacing: 0.02em;
 }
+
+#switch-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+  background: #f0882a;
+  border: none;
+  color: #fff;
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.15s;
+}
+#switch-btn:hover {
+  background: #d97828;
+}

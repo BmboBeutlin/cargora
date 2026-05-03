@@ -45,26 +45,43 @@ Du baust ein Transport-Imperium auf, das mit Pferdekarren im Mittelalter beginnt
 
 ---
 
-## ⚠ Offene Klärungen (kritisch vor Sprite-Generation)
+## Survey V2 Ergebnisse (2026-05-03 Abend)
 
-### Klärung 1: Perspektive (siehe `design-survey-v2.html`)
+### Perspektive: **Cabinet-Iso (RollerCoaster Tycoon-Stil)**
 
-Patricks „vorne/oben" könnte mehrere Dinge bedeuten:
-- **3/4-Iso wie OpenTTD/SimCity 2000** — Tiles als Rauten, Höhen als Stufen
-- **Cabinet-Iso wie RollerCoaster Tycoon** — flacherer Winkel, mehr Vorderseite
-- **2.5D-Aufsicht wie Theme Hospital/Anno 1404** — schräge Drauf­sicht mit Schatten
-- **High-Angle Side-View wie Tropico/Banished** — fast seitlich, leicht von oben
+Cabinet-Iso bedeutet:
+- Tiles als Rauten (Diamond-Shape, 2:1-Verhältnis)
+- Flacherer Winkel als True-Iso → mehr Vorderseite von Gebäuden/Vehicles sichtbar
+- Render-Reihenfolge: hinten nach vorne (Y-Sort)
+- Code-Komplexität: mittel (Iso-Math, aber kein 3D)
 
-→ Mit Bild-Vergleichen klären in **Folge-Survey**.
+**Live-Demo im Spiel:** Patrick kann im Browser zwischen Top-Down und Cabinet-Iso wechseln (Taste `I` oder Button oben rechts). Beide Modi nutzen dieselbe Karte und gleiche Spielmechanik.
 
-### Klärung 2: Era-Range
+### Eras: **Alle 5 Eras** (Mittelalter → Frühe Neuzeit → Industrialisierung → Moderne → Sci-Fi-Twist)
 
-Patricks „Mittelalter beginnend → leichter Sci-Fi" — wie weit reicht der Tech-Tree?
-- Endet mit Heute (LKW, Container)?
-- Endet mit Near-Future (E-LKW, Drohnen)?
-- Endet mit echtem Sci-Fi (Magnet-Bahnen, Anti-Grav)?
+### Era-Übergangs-Tempo: **Spieler bestimmen + Glockenkurve**
 
-→ Auch in **Folge-Survey**.
+Patrick: „die eras sollten halt durch die progression weiterschreiten. das bedeutet wenn ein spieler schneller ist als der andere kann er auch schneller in die neue era vorgehen. allerdings muss das natürlich alles tradeoffs haben."
+
+**Konkrete Mechanik:**
+- Jeder Spieler forscht individuell. Wer früher die Era-Tech freischaltet, kommt früher in die nächste Era.
+- **Pioneer-Vorteil:** Neue Era-Tech zuerst nutzen können (Monopol-Periode).
+- **Pioneer-Risiko:** Frühe Tech ist teuer, fehleranfällig, wenig erforscht. Konkurrenten profitieren von späterer, billigerer Adoption.
+- **Cross-Era-Multiplayer:** Spieler in unterschiedlichen Eras spielen gleichzeitig auf derselben Karte. Pferdekarren-Spieler kann mit LKW-Spieler Handelsverträge schließen.
+
+Patrick zur Zeit-Verteilung: „mittelalter ist immer sehr langweilig und dann industrialisierung bis moderne sind sehr interessant. da vielleicht den hauptaugenmerk dass wir da so eine art glocke bauen oder so."
+
+**Glockenkurve der Era-Tiefe:**
+
+| Era | Forschungstiefe | Spielzeit-Anteil (geschätzt) |
+|-----|-----------------|------------------------------|
+| Mittelalter | Klein (Onboarding, schnell durch) | ~10% |
+| Frühe Neuzeit | Mittel | ~15% |
+| **Industrialisierung** | **Groß** | **~30%** |
+| **Moderne** | **Groß** | **~30%** |
+| Sci-Fi-Twist | Klein (Endgame-Belohnung) | ~15% |
+
+→ Mittelalter und Sci-Fi sind „Türöffner" und „Belohnung", die Mitte ist das Hauptspiel.
 
 ---
 

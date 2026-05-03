@@ -220,6 +220,78 @@ Multiplayer-Konfliktdynamik musste festgelegt werden.
 
 ---
 
+---
+
+## ADR-007: Cabinet-Iso als Karten-Perspektive
+
+**Datum:** 2026-05-03
+**Status:** Akzeptiert
+**Entscheider:** Patrick (via Survey V2)
+
+### Kontext
+
+In Survey V1 hat Patrick „3/4 iso oder 'vorne/oben'" notiert. Survey V2 mit visuellem Vergleich (4 Optionen) hat Cabinet-Iso (RollerCoaster Tycoon-Stil) gewählt.
+
+### Optionen
+
+1. **3/4-Iso (OpenTTD)** — Standard-Iso, etwas steiler
+2. **Cabinet-Iso (RCT)** — flacherer Winkel, mehr Vorderseite
+3. **2.5D-Aufsicht (Theme Hospital)** — Top-Down mit Schatten-Hint
+4. **High-Angle Side-View (Tropico)** — fast seitlich
+
+### Entscheidung
+
+**Option 2: Cabinet-Iso.**
+
+### Begründung
+
+- Patrick-Wahl in V2-Survey
+- Mittelweg zwischen Code-Komplexität und Visual-Reichtum
+- Mehr Front-Detail von Sprites möglich (LKW-Grill, Pferd-Profil, Gebäude-Eingang sichtbar)
+- Klassisch-charmanter Tycoon-Look (Wertschätzung der Genre-Tradition)
+- **Live-Demo im Code:** Spieler kann zwischen Top-Down und Cabinet-Iso wechseln (Taste `I`) — beide Modi parallel implementiert
+
+### Konsequenzen
+
+- Tile-Größe wird 64×32 px (Diamond-Shape) statt 48×48 (Quadrat)
+- Sprite-Auflösung bleibt 48×48 (passt visuell auf 64×32-Tile)
+- Y-Sort-Render-Reihenfolge nötig (`setDepth` in Phaser)
+- Pathfinding bleibt grid-basiert (Iso ist nur Render-Schicht), keine zusätzliche Komplexität
+- Click-to-Move braucht inverse Iso-Transformation (`screenToGrid`-Funktion)
+- **Implementiert:** `src/scenes/CabinetIsoScene.ts` mit `gridToScreen` / `screenToGrid` Helpers
+
+---
+
+## ADR-008: Era-Progression mit individuellem Spieler-Tempo + Glockenkurve
+
+**Datum:** 2026-05-03
+**Status:** Akzeptiert
+**Entscheider:** Patrick (via Survey V2 Anmerkungen)
+
+### Kontext
+
+Era-Progression ist Kern-Mechanik (ADR-004). Survey V2 musste klären: Wie schnell wechseln Eras? Was wenn Spieler unterschiedlich schnell sind?
+
+### Entscheidung
+
+**Spieler bestimmen ihren eigenen Era-Übergang individuell**, kombiniert mit Pioneer-Tradeoffs und einer Glockenkurve der Era-Tiefen.
+
+### Begründung
+
+- **Spieler-Tempo:** Patrick: „wenn ein spieler schneller ist als der andere kann er auch schneller in die neue era vorgehen. allerdings muss das natürlich alles tradeoffs haben." → Echte Strategie-Wahl: Pionier sein (riskant, teuer, Monopol) oder Nachzügler (sicher, billig, Aufholjagd).
+- **Cross-Era-Multiplayer:** Spieler in unterschiedlichen Eras spielen auf derselben Karte und können handeln. Realistisch (analog historische Welt-Asymmetrie).
+- **Glockenkurve:** Patrick: „mittelalter ist immer sehr langweilig" → Mittelalter & Sci-Fi sind dünn (Onboarding + Endgame), Industrialisierung & Moderne sind dick (Hauptspiel-Phase).
+
+### Konsequenzen
+
+- **Forschungssystem komplexer:** Tech-Tree pro Spieler statt global. Pro Era eigener Tech-Tree-Branch.
+- **Pioneer-Tradeoff-Balancing:** Frühe Era-Tech muss schwächer sein als spät-erforschte (Beta-Phase). Pionier zahlt mehr, bekommt Monopol-Bonus.
+- **Cross-Era-Handel:** Mittelalter-Cargo-Container muss in Industrialisierungs-Bahnhof passen → Adapter-Mechaniken.
+- **Phasen-Plan-Implikation:** Phase 1 ist nur Mittelalter (klein, schnell). Phasen 2-5 fokussieren Industrialisierung+Moderne (groß). Phase 6 ist Sci-Fi (klein).
+- **UX-Aspekt:** Visualisierung der individuellen Era-Position pro Spieler nötig (HUD-Widget, Map-Overlay).
+
+---
+
 ## Template für neue ADRs
 
 ```markdown

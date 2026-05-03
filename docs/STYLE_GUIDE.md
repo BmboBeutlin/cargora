@@ -17,26 +17,29 @@
 
 ---
 
-## Offen — wartet auf `design-survey-v2.html`
+## Bestätigt aus V2-Survey
 
-### Perspektive (kritisch)
+### Perspektive: **Cabinet-Iso (RollerCoaster Tycoon-Stil)**
 
-Patrick: „entweder 3/4 iso, oder 'vorne/oben' also keine klassische draufsicht"
+- **Tile-Shape:** Diamond/Raute mit 2:1-Verhältnis
+- **Tile-Größe:** 64×32 px (entspricht 48×48 äquivalent für Sprite-Auflösung)
+- **Render-Reihenfolge:** Y-Sort (hinten nach vorne via `setDepth`)
+- **Vehicles/Buildings:** Sprites mit erkennbarer Vorderseite (mehr Front-Detail als bei True-Iso)
+- **Mathematik:**
+  ```
+  screenX = ORIGIN_X + (gridX - gridY) * (TILE_W / 2)
+  screenY = ORIGIN_Y + (gridX + gridY) * (TILE_H / 2)
+  ```
 
-→ **4 Optionen** zur Auswahl in der Folge-Survey:
-1. **3/4-Iso (OpenTTD/SimCity 2000)** — schräge Drauf­sicht, Rauten-Tiles, Höhen als Stufen
-2. **Cabinet-Iso (RollerCoaster Tycoon)** — flacherer Winkel, mehr Vorderseite sichtbar
-3. **2.5D-Aufsicht (Theme Hospital/Anno 1404)** — schräge Drauf­sicht mit Volumen-Schatten
-4. **High-Angle Side-View (Tropico/Banished)** — fast seitlich, leicht von oben
+### Era-Range: **Alle 5 Eras**
 
-**Code-Komplexität:** 1 < 2 < 3 < 4. Visual-Reichtum: ähnlich umgekehrt.
+Mittelalter, Frühe Neuzeit, Industrialisierung, Moderne, Sci-Fi-Twist.
 
-### Era-Range
+→ Pro Era separater Sprite-Set (Vehicles, Buildings, Tile-Texturen).
 
-Wie viele Eras tatsächlich umsetzen? Mittelalter ist Start. Aber wie weit?
-- 3 Eras (Mittelalter → Industrialisierung → Moderne)?
-- 5 Eras (+ Frühe Neuzeit als Übergang, + Sci-Fi)?
-- Mehr granular?
+### Era-Sprite-Volumen (Schätzung)
+
+Bei 5 Eras × ~30 Sprites pro Era (10 Vehicles, 15 Buildings, 5 Tile-Sets) = **~150 Sprites total**. Spread über 20-24 Monate = ~6-8 Sprites pro Monat. Machbar mit KI-Generation + Patrick-Politur.
 
 ---
 
