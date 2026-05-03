@@ -126,7 +126,8 @@ export class CabinetIsoScene extends Phaser.Scene {
     this.hoverTile.setVisible(false);
 
     const start = gridToScreen(this.currentTile.x, this.currentTile.y);
-    this.truck = this.add.image(start.x, start.y - 12, HEADING_TEXTURE_KEY[this.currentHeading]);
+    this.truck = this.add.image(start.x, start.y - 6, HEADING_TEXTURE_KEY[this.currentHeading]);
+    this.truck.setScale(0.65); // LKW kleiner: ca 1/3 Tile-Breite, OpenTTD-Maßstab
     this.truck.setDepth(start.y + 1000);
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
@@ -239,7 +240,7 @@ export class CabinetIsoScene extends Phaser.Scene {
     this.tweens.add({
       targets: this.truck,
       x: toS.x,
-      y: toS.y - 12,
+      y: toS.y - 6,
       duration,
       ease: 'Linear',
       onUpdate: () => {

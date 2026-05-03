@@ -143,14 +143,11 @@ export function createAsphaltOverlaySprite(c: Connections): HTMLCanvasElement {
   // S (Y+): Bildschirm links-unten  (dirX=-1, dirY=+1)
   // W (X-): Bildschirm links-oben   (dirX=-1, dirY=-1)
   //
-  // Mittelstreifen nur bei "geradem Durchgang" (gegenüberliegende Verbindungen).
-  const lineNS = c.N && c.S;  // gerade NS
-  const lineEW = c.E && c.W;  // gerade EW
-
-  if (c.N) drawStripe(ctx, +1, -1, lineNS);
-  if (c.E) drawStripe(ctx, +1, +1, lineEW);
-  if (c.S) drawStripe(ctx, -1, +1, lineNS);
-  if (c.W) drawStripe(ctx, -1, -1, lineEW);
+  // Mittelstreifen IMMER pro Verbindung (auch in Kurven/T/X) → konsistente Optik.
+  if (c.N) drawStripe(ctx, +1, -1, true);
+  if (c.E) drawStripe(ctx, +1, +1, true);
+  if (c.S) drawStripe(ctx, -1, +1, true);
+  if (c.W) drawStripe(ctx, -1, -1, true);
 
   return canvas;
 }
