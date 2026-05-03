@@ -26,10 +26,30 @@ import {
   bridgePillarKey,
 } from '../assets/sprites';
 import type { Heading } from '../assets/sprites';
+import {
+  VEHICLE_SHEET_PATH,
+  VEHICLE_FRAME_W,
+  VEHICLE_FRAME_H,
+  HEADING_FRAME_MAP,
+  VEHICLE_TEXTURE_KEY,
+} from '../assets/sprites/vehicle-sheet';
 
 const TILE_W = 64;
 const TILE_H = 32;
 const HEIGHT_PIXELS = 8; // 1 Welt-Z = 8 Pixel höher auf dem Bildschirm
+
+// Y-Sort Depth-Berechnung: basiert auf grid_y, nicht screen_y.
+// So überdeckt ein Berg vorne (höheres grid_y) automatisch alles dahinter (niedrigeres grid_y),
+// inklusive LKWs.
+const DEPTH_PER_ROW = 100;
+const DEPTH_TILE = 0;
+const DEPTH_WALL = 5;
+const DEPTH_HIGHLIGHT = 8;
+const DEPTH_PILLAR = 20;
+const DEPTH_VEHICLE = 50;
+const DEPTH_BRIDGE_TILE = 70;
+const DEPTH_PATH_MARKER = 30;
+const DEPTH_HOVER = 999999;
 
 const ORIGIN_X = 480 - ((MAP_W - 1) - (MAP_H - 1)) * (TILE_W / 4);
 const ORIGIN_Y = 350 - ((MAP_W - 1) + (MAP_H - 1)) * (TILE_H / 4);
@@ -56,12 +76,6 @@ function screenToGrid(sx: number, sy: number): { x: number; y: number } {
   };
 }
 
-const HEADING_TEXTURE_KEY: Record<Heading, string> = {
-  se: SPRITE_KEYS.truckSE,
-  nw: SPRITE_KEYS.truckNW,
-  sw: SPRITE_KEYS.truckSW,
-  ne: SPRITE_KEYS.truckNE,
-};
 
 function computeHeading(from: Point, to: Point): Heading {
   const dx = to.x - from.x;
@@ -114,6 +128,13 @@ export class CabinetIsoScene extends Phaser.Scene {
     super('cabinet-iso');
   }
 
+  preload(): void {
+    this.load.spritesheet(VEHICLE_TEXTURE_KEY, VEHICLE_SHEET_PATH, {
+      frameWidth: VEHICLE_FRAME_W,
+      frameHeight: VEHICLE_FRAME_H,
+    });
+  }
+
   create(): void {
     this.registerSpriteTextures();
     const world = buildWorld();
@@ -139,8 +160,7 @@ export class CabinetIsoScene extends Phaser.Scene {
           textureKey = SPRITE_KEYS.tileFeldweg;
         }
         const img = this.add.image(sx, renderY, textureKey);
-        // Depth: grundsätzlich Iso-Y-Sort, höhere Tiles bekommen leichten Bonus
-        img.setDepth(sy + h * 0.5);
+        img.setDepth(y * DEPTH_PER_ROW + DEPTH_TILE + h * 0.1);
 
         // Höhen-Schattierung: höhere Tiles bekommen Licht-Highlight (Sonnenlicht-Effekt)
         if (h > 0) {
@@ -148,32 +168,28 @@ export class CabinetIsoScene extends Phaser.Scene {
           highlight.setAlpha(Math.min(0.35, 0.15 * h));
           highlight.setTint(0xffffe8);
           highlight.setBlendMode(Phaser.BlendModes.ADD);
-          highlight.setDepth(sy + h * 0.5 + 0.01);
+          highlight.setDepth(y * DEPTH_PER_ROW + DEPTH_HIGHLIGHT + h * 0.1);
         }
 
-        // Höhen-Wände: rendere Wand-Sprites zur E- und S-Seite, wenn höher als Nachbar
-        // East-Wand (Welt X+, Bildschirm rechts-unten)
-        // Geteilte Edge geht von Tile-S-Spitze (sx, renderY+16) zu Tile-E-Spitze (sx+32, renderY)
-        // Sprite-Top-Left bei (sx, renderY): Edge verläuft im Sprite von (0, 16) nach (32, 0)
+        // Höhen-Wände
         if (x + 1 < MAP_W) {
           const hE = this.heights[y][x + 1];
           if (h > hE) {
             const diff = h - hE;
             const wall = this.add.image(sx, renderY, eastWallKey(diff));
             wall.setOrigin(0, 0);
-            wall.setDepth(sy + h * 0.5 - 0.1);
+            // Wand "gehört" optisch zum Nachbar-Tile (er ist niedriger, sieht die Wand zu sich hin)
+            wall.setDepth(y * DEPTH_PER_ROW + DEPTH_WALL);
           }
         }
-        // South-Nachbar (Welt Y+, Bildschirm links-unten)
-        // Geteilte Edge: zwischen W-Spitze (sx-32, sy) und S-Spitze (sx, sy+16)
-        // Sprite-Top-Left bei (sx - 32, sy - h*HEIGHT_PIXELS) (= W-Spitze des erhöhten Tiles)
         if (y + 1 < MAP_H) {
           const hS = this.heights[y + 1][x];
           if (h > hS) {
             const diff = h - hS;
             const wall = this.add.image(sx - TILE_W / 2, renderY, southWallKey(diff));
             wall.setOrigin(0, 0);
-            wall.setDepth(sy + h * 0.5 - 0.1);
+            // South-Wand: Nachbar-Tile ist y+1, also depth zur diesem Nachbar zuordnen
+            wall.setDepth((y + 1) * DEPTH_PER_ROW - 1);
           }
         }
       }
@@ -186,23 +202,19 @@ export class CabinetIsoScene extends Phaser.Scene {
       const bridgeH = bridge.bridgeHeight;
       const pillarH = (bridgeH - baseH) * HEIGHT_PIXELS;
 
-      // Pfeiler links und rechts vom Tile-Center, an den seitlichen Diamond-Spitzen
       if (pillarH > 0) {
         const pKey = bridgePillarKey(pillarH);
-        // Linker Pfeiler an W-Diamond-Spitze (sx-32, sy)
         const pillarLeft = this.add.image(sx - 16, sy + 4 - baseH * HEIGHT_PIXELS, pKey);
         pillarLeft.setOrigin(0.5, 1);
-        pillarLeft.setDepth(sy + 2);
-        // Rechter Pfeiler an E-Diamond-Spitze (sx+32, sy)
+        pillarLeft.setDepth(bridge.y * DEPTH_PER_ROW + DEPTH_PILLAR);
         const pillarRight = this.add.image(sx + 16, sy + 4 - baseH * HEIGHT_PIXELS, pKey);
         pillarRight.setOrigin(0.5, 1);
-        pillarRight.setDepth(sy + 2);
+        pillarRight.setDepth(bridge.y * DEPTH_PER_ROW + DEPTH_PILLAR);
       }
 
-      // Brücken-Asphalt-Sprite — Auto-Tile basierend auf anderen Brücken-Tiles
       const bridgeConnKey = getBridgeConnectionsKey(this.bridges, bridge.x, bridge.y);
       const bridgeImg = this.add.image(sx, sy - bridgeH * HEIGHT_PIXELS, asphaltKey(bridgeConnKey));
-      bridgeImg.setDepth(sy + bridgeH * 8 + 1000); // immer ÜBER allem darunter
+      bridgeImg.setDepth(bridge.y * DEPTH_PER_ROW + DEPTH_BRIDGE_TILE);
     }
 
     const halfW = TILE_W / 2;
@@ -210,14 +222,20 @@ export class CabinetIsoScene extends Phaser.Scene {
     const diamond = [-halfW, 0, 0, -halfH, halfW, 0, 0, halfH];
     this.hoverTile = this.add.polygon(0, 0, diamond, 0xffffff, 0);
     this.hoverTile.setStrokeStyle(2, 0xffffff, 0.85);
-    this.hoverTile.setDepth(99999);
+    this.hoverTile.setDepth(DEPTH_HOVER);
     this.hoverTile.setVisible(false);
 
     const start = gridToScreen(this.currentTile.x, this.currentTile.y);
     const startH = this.heights[this.currentTile.y][this.currentTile.x];
-    this.truck = this.add.image(start.x, start.y - 6 - startH * HEIGHT_PIXELS, HEADING_TEXTURE_KEY[this.currentHeading]);
-    this.truck.setScale(0.65);
-    this.truck.setDepth(start.y + 1000 + startH);
+    // Sprite-Sheet aktiv — Frame 0-3 werden für Headings genutzt
+    this.truck = this.add.image(
+      start.x,
+      start.y - 8 - startH * HEIGHT_PIXELS,
+      VEHICLE_TEXTURE_KEY,
+      HEADING_FRAME_MAP[this.currentHeading]
+    );
+    this.truck.setScale(1.0);
+    this.truck.setDepth(this.currentTile.y * DEPTH_PER_ROW + DEPTH_VEHICLE);
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
       const wp = this.cameras.main.getWorldPoint(p.x, p.y);
@@ -289,7 +307,7 @@ export class CabinetIsoScene extends Phaser.Scene {
   private setHeading(h: Heading): void {
     if (h === this.currentHeading) return;
     this.currentHeading = h;
-    this.truck.setTexture(HEADING_TEXTURE_KEY[h]);
+    this.truck.setFrame(HEADING_FRAME_MAP[h]);
   }
 
   private startNavigation(tx: number, ty: number): void {
@@ -341,14 +359,19 @@ export class CabinetIsoScene extends Phaser.Scene {
     const distance = Math.hypot(toS.x - fromS.x, toS.y - fromS.y);
     const duration = distance / (BASE_PIXELS_PER_MS * avgSpeed);
 
+    // Während des Tweens kontinuierlich Depth aktualisieren basierend auf interpolierter grid_y
+    const fromGy = fromTile.y;
+    const toGy = next.y;
     this.tweens.add({
       targets: this.truck,
       x: toS.x,
       y: toS.y - 6 - toH * HEIGHT_PIXELS,
       duration,
       ease: 'Linear',
-      onUpdate: () => {
-        this.truck.setDepth(this.truck.y + 1000);
+      onUpdate: (tween) => {
+        const t = tween.progress;
+        const interpGy = fromGy + (toGy - fromGy) * t;
+        this.truck.setDepth(interpGy * DEPTH_PER_ROW + DEPTH_VEHICLE);
       },
       onComplete: () => {
         this.currentTile = { x: next.x, y: next.y };
@@ -373,7 +396,7 @@ export class CabinetIsoScene extends Phaser.Scene {
         isLast ? 0xf0882a : 0xffffff,
         isLast ? 1 : 0.55
       );
-      marker.setDepth(s.y + 500);
+      marker.setDepth(p.y * DEPTH_PER_ROW + DEPTH_PATH_MARKER);
       this.pathMarkers.push(marker);
     }
   }

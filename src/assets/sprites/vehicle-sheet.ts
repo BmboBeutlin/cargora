@@ -16,9 +16,10 @@ import type { Heading } from './truck';
 
 export const VEHICLE_SHEET_PATH = '/sprites/vehicles.png';
 
-export const VEHICLE_FRAME_W = 40;
-export const VEHICLE_FRAME_H = 48;
-export const VEHICLE_FRAME_COUNT = 17;
+// Beobachtung: 17x48 zeigt ZWEI LKW übereinander. Sheet hat vermutlich 2 Reihen à 24 Pixel.
+export const VEHICLE_FRAME_W = 17;
+export const VEHICLE_FRAME_H = 24;
+export const VEHICLE_FRAME_COUNT = 80;
 
 // Color-Variant 0 (Frames 0-3): provisorische Heading-Zuordnung.
 // Wenn Patrick im Inspector sagt "Frame 5 ist eigentlich SE", anpassen.
