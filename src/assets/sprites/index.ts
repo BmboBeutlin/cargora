@@ -10,6 +10,8 @@
 
 export { createTruckSprite, createTruckSpriteSet } from './truck.ts';
 export type { Heading } from './truck.ts';
+export { createColoredTruckSet, TRUCK_COLORS, coloredTruckKey } from './truck-colors.ts';
+export type { TruckColor } from './truck-colors.ts';
 export { createAsphaltTileSprite } from './tile-asphalt.ts';
 export {
   createAsphaltOverlaySprite,

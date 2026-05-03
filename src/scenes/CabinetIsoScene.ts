@@ -11,6 +11,9 @@ import type { Point } from '../world/pathfinding';
 import { renderHud, flashHud } from '../ui/hud';
 import {
   createTruckSpriteSet,
+  createColoredTruckSet,
+  TRUCK_COLORS,
+  coloredTruckKey,
   createGrassTileSprite,
   createSchotterTileSprite,
   createFeldwegTileSprite,
@@ -34,7 +37,8 @@ import {
   bridgePillarKey,
   bridgeAsphaltKey,
 } from '../assets/sprites';
-import type { Heading } from '../assets/sprites';
+import type { Heading, TruckColor } from '../assets/sprites';
+import { Vehicle } from '../entities/Vehicle';
 
 const TILE_W = 64;
 const TILE_H = 32;
@@ -135,6 +139,7 @@ export class CabinetIsoScene extends Phaser.Scene {
   private currentHeading: Heading = 'se';
   private autoMode = true;
   private autoTargets: { x: number; y: number }[] = [];
+  private extraVehicles: Vehicle[] = [];
 
   constructor() {
     super('cabinet-iso');
@@ -307,8 +312,31 @@ export class CabinetIsoScene extends Phaser.Scene {
           }
         }
       }
-      // Erste Bewegung kurz nach Start
       this.time.delayedCall(800, () => this.autoNext());
+    }
+
+    // Multi-Vehicle: 4 weitere LKW in verschiedenen Farben spawnen
+    const extraColors: TruckColor[] = ['blue', 'green', 'yellow', 'white'];
+    const startTiles: Array<{ x: number; y: number }> = [
+      { x: 16, y: 2 }, { x: 2, y: 7 }, { x: 16, y: 12 }, { x: 8, y: 8 },
+    ];
+    for (let i = 0; i < extraColors.length; i++) {
+      const startTile = startTiles[i];
+      // nur spawnen falls Tile asphalt ist
+      if (this.map[startTile.y][startTile.x] !== 'asphalt') continue;
+      const v = new Vehicle({
+        scene: this,
+        startTile,
+        color: extraColors[i],
+        heading: 'se',
+        gridToScreen,
+        map: this.map,
+        heights: this.heights,
+        scale: 1.0,
+        autoDriveDelay: 800 + Math.random() * 800,
+      });
+      v.startAutoDrive(this.autoTargets);
+      this.extraVehicles.push(v);
     }
 
     this.updateHud();
@@ -369,12 +397,21 @@ export class CabinetIsoScene extends Phaser.Scene {
     if (!tex.exists(SPRITE_KEYS.cottage)) tex.addCanvas(SPRITE_KEYS.cottage, createCottageSprite());
     if (!tex.exists(SPRITE_KEYS.tunnelEast)) tex.addCanvas(SPRITE_KEYS.tunnelEast, createTunnelEastSprite());
 
-    // Programmatische LKW-Sprites zurück (Sheet-Layout war kaputt)
+    // Default-LKW (rot via createTruckSpriteSet) als Haupt-Truck
     const truckSet = createTruckSpriteSet();
     if (!tex.exists(SPRITE_KEYS.truckSE)) tex.addCanvas(SPRITE_KEYS.truckSE, truckSet.se);
     if (!tex.exists(SPRITE_KEYS.truckNW)) tex.addCanvas(SPRITE_KEYS.truckNW, truckSet.nw);
     if (!tex.exists(SPRITE_KEYS.truckSW)) tex.addCanvas(SPRITE_KEYS.truckSW, truckSet.sw);
     if (!tex.exists(SPRITE_KEYS.truckNE)) tex.addCanvas(SPRITE_KEYS.truckNE, truckSet.ne);
+
+    // Multi-Color-Trucks: alle 6 Farben x 4 Headings registrieren
+    for (const color of TRUCK_COLORS) {
+      const set = createColoredTruckSet(color);
+      for (const heading of ['se', 'nw', 'sw', 'ne'] as Heading[]) {
+        const key = coloredTruckKey(color, heading);
+        if (!tex.exists(key)) tex.addCanvas(key, set[heading]);
+      }
+    }
 
     // LKW-Sprite kommt aus vehicles.png (preload)
   }
