@@ -1,18 +1,17 @@
 /**
- * Tunnel-Eingangs-Sprite — Cabinet-Iso.
- *
- * Erscheint als dunkler Bogen in einem Berg-Hang. 4 Richtungen (N/E/S/W).
- * Wird auf einer Asphalt-Tile gerendert, der "in den Berg führt".
+ * Tunnel-Eingangs-Sprite — Cabinet-Iso, größer und deutlicher.
  */
 
 const COL = {
-  archStone: '#4a4238',
-  archStoneDark: '#2a2218',
-  archStoneLight: '#6a6248',
-  tunnelDark: '#0a0805',
+  archStone: '#5a4d40',
+  archStoneDark: '#2a221a',
+  archStoneLight: '#7a6e5e',
+  archMortar: '#3a3024',
+  tunnelDark: '#050402',
   tunnelMid: '#181410',
-  road: '#2a2a32',
-  roadLine: '#7a7a52',
+  tunnelEdge: '#0a0805',
+  road: '#3a3a42',
+  roadLine: '#9a9a52',
 } as const;
 
 function rect(ctx: CanvasRenderingContext2D, color: string, x: number, y: number, w: number, h: number): void {
@@ -20,43 +19,68 @@ function rect(ctx: CanvasRenderingContext2D, color: string, x: number, y: number
   ctx.fillRect(x, y, w, h);
 }
 
-// Tunnel-Eingang Richtung E (Welt X+, Bildschirm rechts-unten)
-// Größe: 32x32, Anchor (0.5, 1) = bottom-center auf der Tile
+// Tunnel-Eingang: 48×42 Pixel, mit großem Bogen + Stein-Quadern + tiefem Loch
 export function createTunnelEastSprite(): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
-  canvas.width = 32;
-  canvas.height = 28;
+  canvas.width = 48;
+  canvas.height = 42;
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
 
-  // Stein-Bogen außen
-  rect(ctx, COL.archStone, 8, 4, 16, 22);
-  // Innenseite Bogen (links Schatten)
-  rect(ctx, COL.archStoneDark, 8, 4, 2, 22);
-  // Highlights rechts
-  rect(ctx, COL.archStoneLight, 22, 4, 2, 22);
+  // Stein-Bogen-Wand (ganzer Block)
+  rect(ctx, COL.archStone, 6, 4, 36, 36);
+
+  // Bogen-Innen-Schatten (links, dunkler)
+  rect(ctx, COL.archStoneDark, 6, 4, 4, 36);
+  // Bogen-Highlight (rechts, heller)
+  rect(ctx, COL.archStoneLight, 38, 4, 4, 36);
   // Top edge dunkler
-  rect(ctx, COL.archStoneDark, 8, 4, 16, 1);
+  rect(ctx, COL.archStoneDark, 6, 4, 36, 2);
 
-  // Tunnel-Loch (dunkle Öffnung)
-  rect(ctx, COL.tunnelDark, 11, 8, 10, 14);
-  // Loch-Innen-Schatten
-  rect(ctx, COL.tunnelMid, 11, 8, 2, 14);
-  rect(ctx, COL.tunnelMid, 19, 8, 2, 14);
-  rect(ctx, COL.tunnelMid, 11, 8, 10, 2);
-
-  // Stein-Pixel-Variation
-  for (let y = 4; y < 26; y += 4) {
-    rect(ctx, COL.archStoneDark, 8, y, 16, 1);
+  // Stein-Quader (Mörtel-Linien horizontal alle 6 px)
+  for (let y = 8; y < 40; y += 6) {
+    rect(ctx, COL.archMortar, 6, y, 36, 1);
+  }
+  // Stein-Quader vertikal — versetzt pro Reihe
+  for (let row = 0; row < 6; row++) {
+    const yStart = 4 + row * 6;
+    const offset = row % 2 === 0 ? 0 : 6;
+    for (let x = 6 + offset; x < 42; x += 12) {
+      rect(ctx, COL.archMortar, x, yStart, 1, 6);
+    }
   }
 
-  // Straße in den Tunnel rein (kleine Andeutung)
-  rect(ctx, COL.road, 13, 22, 6, 4);
-  rect(ctx, COL.roadLine, 15, 23, 2, 1);
-  rect(ctx, COL.roadLine, 15, 25, 2, 1);
+  // Tunnel-Loch (großer dunkler Bogen in der Mitte)
+  // Bogen-Form: gerundetes Rechteck mit halbkreisförmiger Oberseite
+  for (let y = 12; y < 36; y++) {
+    let leftX = 16;
+    let rightX = 32;
+    if (y < 18) {
+      // Halbkreis-Oberseite
+      const dy = 18 - y;
+      const r = Math.sqrt(36 - dy * dy);
+      leftX = Math.round(24 - r);
+      rightX = Math.round(24 + r);
+    }
+    rect(ctx, COL.tunnelDark, leftX, y, rightX - leftX, 1);
+    // Loch-Innen-Schatten (links 1px, oben 1px)
+    rect(ctx, COL.tunnelEdge, leftX, y, 1, 1);
+    rect(ctx, COL.tunnelEdge, rightX - 1, y, 1, 1);
+    if (y === 12 || y === 13) {
+      rect(ctx, COL.tunnelEdge, leftX, y, rightX - leftX, 1);
+    }
+  }
+
+  // Innen-Schatten oben (gibt Tiefe)
+  rect(ctx, COL.tunnelMid, 17, 14, 14, 2);
+
+  // Straße in den Tunnel hinein
+  rect(ctx, COL.road, 18, 36, 12, 6);
+  // Mittelstreifen
+  rect(ctx, COL.roadLine, 22, 38, 1, 1);
+  rect(ctx, COL.roadLine, 22, 40, 1, 1);
+  rect(ctx, COL.roadLine, 25, 38, 1, 1);
+  rect(ctx, COL.roadLine, 25, 40, 1, 1);
 
   return canvas;
 }
-
-// Spiegel-Variante für andere Richtungen — könnten wir später machen.
-// Für jetzt nur East-Richtung als Demo.

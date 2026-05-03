@@ -148,12 +148,15 @@ export function buildWorld(): WorldData {
   heights[1][12] = 1;
   // Wasser ist auf Höhe 0 (default), Brücke darüber auf Höhe 2
 
-  // Demo-Brücke: Asphalt-Brücke ÜBER den Fluss (Zeile 13)
+  // Demo-Brücken über Fluss (Zeile 13) — eine längere + eine kleine
   const bridges: BridgeTile[] = [
-    { x: 8, y: 13, bridgeHeight: 2 },
-    { x: 9, y: 13, bridgeHeight: 2 },
-    { x: 10, y: 13, bridgeHeight: 2 },
+    { x: 4, y: 13, bridgeHeight: 2 },
+    { x: 5, y: 13, bridgeHeight: 2 },
+    { x: 6, y: 13, bridgeHeight: 2 },
+    { x: 7, y: 13, bridgeHeight: 2 },
     { x: 11, y: 13, bridgeHeight: 2 },
+    { x: 12, y: 13, bridgeHeight: 2 },
+    { x: 13, y: 13, bridgeHeight: 2 },
   ];
 
   // Demo-Tunnel: Eingang am Berg-Fuß
