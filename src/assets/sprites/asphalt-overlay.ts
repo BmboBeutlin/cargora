@@ -65,35 +65,25 @@ function drawGrassBase(ctx: CanvasRenderingContext2D): void {
 }
 
 // Asphalt-Streifen vom Tile-Center (32, 16) zu einer Edge-Mitte.
-// dirX/dirY = Bildschirm-Direction (+1 nach rechts, +1 nach unten).
-// Welt-Math: Bei Iso ist 1 Welt-Step in X-Achse = (+32 px, +16 px) Bildschirm,
-// d.h. Slope 1:2 für E (Welt X+).
-//
-// Streifen ist 8 Pixel breit (orthogonal zur Bewegungsrichtung im Iso-Raum).
+// Streifen ist BREITER (12 statt 8 Pixel) damit benachbarte Tiles sich überlappen.
 function drawStripe(
   ctx: CanvasRenderingContext2D,
   dirScreenX: 1 | -1,
   dirScreenY: 1 | -1,
   withCenterLine: boolean,
 ): void {
-  // Streifen läuft vom Center (32, 16) nach (32 + dirScreenX*16, 16 + dirScreenY*8)
-  // Slope: dy/dx = dirScreenY * 0.5 / dirScreenX
-  // Streifen-Breite: orthogonale Richtung
-  const length = 17;
+  const length = 18; // bis ans Edge (max ~17)
   for (let i = 0; i <= length; i++) {
     const xMid = 32 + dirScreenX * i;
     const yMid = 16 + dirScreenY * (i * 0.5);
-    // Streifen orthogonal zum Slope
-    // Für Slope (1, 0.5): Orthogonale ist ungefähr (-0.5, 1) normiert
-    // Pragmatisch: vertikaler Streifen (4 Pixel oben/unten)
-    for (let dy = -4; dy <= 4; dy++) {
+    // Streifen-Breite: 6 oben + 6 unten = 12 Pixel orthogonal
+    for (let dy = -6; dy <= 6; dy++) {
       const y = Math.round(yMid + dy);
       const x = Math.round(xMid);
-      // Diamond-Edge respect: nur innerhalb Diamond
       if (!inDiamond(x, y)) continue;
       // Schatten am Rand, hell in Mitte
-      if (Math.abs(dy) === 4) px(ctx, COL.asphaltDark, x, y);
-      else if (Math.abs(dy) >= 3) px(ctx, COL.asphalt, x, y);
+      if (Math.abs(dy) >= 6) px(ctx, COL.asphaltDark, x, y);
+      else if (Math.abs(dy) >= 5) px(ctx, COL.asphalt, x, y);
       else if (Math.abs(dy) <= 1) px(ctx, COL.asphaltLight, x, y);
       else px(ctx, COL.asphalt, x, y);
     }
@@ -111,14 +101,14 @@ function drawStripe(
   }
 }
 
-// Center-Pad: kreisförmiger Asphalt-Spot in der Tile-Mitte
+// Center-Pad: größerer Asphalt-Spot in der Tile-Mitte (passt zu breiteren Streifen)
 function drawCenterPad(ctx: CanvasRenderingContext2D): void {
-  for (let dy = -3; dy <= 3; dy++) {
-    for (let dx = -5; dx <= 5; dx++) {
+  for (let dy = -5; dy <= 5; dy++) {
+    for (let dx = -8; dx <= 8; dx++) {
       const x = 32 + dx;
       const y = 16 + dy;
       if (!inDiamond(x, y)) continue;
-      const dist = Math.abs(dx) / 5 + Math.abs(dy) / 3;
+      const dist = Math.abs(dx) / 8 + Math.abs(dy) / 5;
       if (dist > 1.0) continue;
       if (dist > 0.85) px(ctx, COL.asphaltDark, x, y);
       else if (dist < 0.4) px(ctx, COL.asphaltLight, x, y);
@@ -134,7 +124,25 @@ export function createAsphaltOverlaySprite(c: Connections, withGrassBase: boolea
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
 
-  if (withGrassBase) drawGrassBase(ctx);
+  if (withGrassBase) {
+    drawGrassBase(ctx);
+  } else {
+    // Brücken-Variante: voller Asphalt als Diamond-Base (kein Streifen-only-Look)
+    fillDiamond(ctx, COL.asphalt);
+    // Subtile Light/Shadow-Bands wie tile-asphalt
+    for (let y = 0; y < 16; y++) {
+      const dy = y;
+      const halfW = (dy + 1) * 2;
+      ctx.fillStyle = COL.asphaltLight;
+      ctx.fillRect(32, y, halfW - 1, 1);
+    }
+    for (let y = 16; y < 32; y++) {
+      const dy = 31 - y;
+      const halfW = (dy + 1) * 2;
+      ctx.fillStyle = COL.asphaltDark;
+      ctx.fillRect(32 - halfW + 1, y, halfW - 1, 1);
+    }
+  }
   drawCenterPad(ctx);
 
   // Welt-Direction → Bildschirm-Slope:

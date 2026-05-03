@@ -10,6 +10,7 @@ import { findPath } from '../world/pathfinding';
 import type { Point } from '../world/pathfinding';
 import { renderHud, flashHud } from '../ui/hud';
 import {
+  createTruckSpriteSet,
   createGrassTileSprite,
   createSchotterTileSprite,
   createFeldwegTileSprite,
@@ -34,13 +35,6 @@ import {
   bridgeAsphaltKey,
 } from '../assets/sprites';
 import type { Heading } from '../assets/sprites';
-import {
-  VEHICLE_SHEET_PATH,
-  VEHICLE_FRAME_W,
-  VEHICLE_FRAME_H,
-  HEADING_FRAME_MAP,
-  VEHICLE_TEXTURE_KEY,
-} from '../assets/sprites/vehicle-sheet';
 
 const TILE_W = 64;
 const TILE_H = 32;
@@ -84,6 +78,13 @@ function screenToGrid(sx: number, sy: number): { x: number; y: number } {
   };
 }
 
+
+const HEADING_TEXTURE_KEY: Record<Heading, string> = {
+  se: SPRITE_KEYS.truckSE,
+  nw: SPRITE_KEYS.truckNW,
+  sw: SPRITE_KEYS.truckSW,
+  ne: SPRITE_KEYS.truckNE,
+};
 
 function computeHeading(from: Point, to: Point): Heading {
   const dx = to.x - from.x;
@@ -137,13 +138,6 @@ export class CabinetIsoScene extends Phaser.Scene {
 
   constructor() {
     super('cabinet-iso');
-  }
-
-  preload(): void {
-    this.load.spritesheet(VEHICLE_TEXTURE_KEY, VEHICLE_SHEET_PATH, {
-      frameWidth: VEHICLE_FRAME_W,
-      frameHeight: VEHICLE_FRAME_H,
-    });
   }
 
   create(): void {
@@ -271,14 +265,8 @@ export class CabinetIsoScene extends Phaser.Scene {
 
     const start = gridToScreen(this.currentTile.x, this.currentTile.y);
     const startH = this.heights[this.currentTile.y][this.currentTile.x];
-    // Sprite-Sheet aktiv — Frame 0-3 werden für Headings genutzt
-    this.truck = this.add.image(
-      start.x,
-      start.y - 8 - startH * HEIGHT_PIXELS,
-      VEHICLE_TEXTURE_KEY,
-      HEADING_FRAME_MAP[this.currentHeading]
-    );
-    this.truck.setScale(1.0);
+    this.truck = this.add.image(start.x, start.y - 8 - startH * HEIGHT_PIXELS, HEADING_TEXTURE_KEY[this.currentHeading]);
+    this.truck.setScale(0.7);
     this.truck.setDepth(this.currentTile.y * DEPTH_PER_ROW + DEPTH_VEHICLE);
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
@@ -345,13 +333,13 @@ export class CabinetIsoScene extends Phaser.Scene {
     if (!tex.exists(SPRITE_KEYS.tileFeldweg)) tex.addCanvas(SPRITE_KEYS.tileFeldweg, createFeldwegTileSprite());
     if (!tex.exists(SPRITE_KEYS.tileWasser)) tex.addCanvas(SPRITE_KEYS.tileWasser, createWaterTileSprite());
 
-    // Alle 16 Asphalt-Auto-Tiling-Varianten registrieren (mit Gras-Hintergrund)
+    // Alle 16 Asphalt-Auto-Tiling-Varianten: Strassen-Look mit Gras-Background (OpenTTD-Style)
     for (const key of ALL_CONNECTION_KEYS) {
       const texKey = asphaltKey(key);
       if (!tex.exists(texKey)) {
         tex.addCanvas(texKey, createAsphaltOverlaySprite(parseConnectionsKey(key), true));
       }
-      // Plus Brücken-Variante (OHNE Gras-Hintergrund — nur Asphalt-Sprite)
+      // Bridge-Variante: voller Asphalt-Diamond (Brücke ist eine massive Plattform)
       const bKey = bridgeAsphaltKey(key);
       if (!tex.exists(bKey)) {
         tex.addCanvas(bKey, createAsphaltOverlaySprite(parseConnectionsKey(key), false));
@@ -381,13 +369,20 @@ export class CabinetIsoScene extends Phaser.Scene {
     if (!tex.exists(SPRITE_KEYS.cottage)) tex.addCanvas(SPRITE_KEYS.cottage, createCottageSprite());
     if (!tex.exists(SPRITE_KEYS.tunnelEast)) tex.addCanvas(SPRITE_KEYS.tunnelEast, createTunnelEastSprite());
 
+    // Programmatische LKW-Sprites zurück (Sheet-Layout war kaputt)
+    const truckSet = createTruckSpriteSet();
+    if (!tex.exists(SPRITE_KEYS.truckSE)) tex.addCanvas(SPRITE_KEYS.truckSE, truckSet.se);
+    if (!tex.exists(SPRITE_KEYS.truckNW)) tex.addCanvas(SPRITE_KEYS.truckNW, truckSet.nw);
+    if (!tex.exists(SPRITE_KEYS.truckSW)) tex.addCanvas(SPRITE_KEYS.truckSW, truckSet.sw);
+    if (!tex.exists(SPRITE_KEYS.truckNE)) tex.addCanvas(SPRITE_KEYS.truckNE, truckSet.ne);
+
     // LKW-Sprite kommt aus vehicles.png (preload)
   }
 
   private setHeading(h: Heading): void {
     if (h === this.currentHeading) return;
     this.currentHeading = h;
-    this.truck.setFrame(HEADING_FRAME_MAP[h]);
+    this.truck.setTexture(HEADING_TEXTURE_KEY[h]);
   }
 
   private startNavigation(tx: number, ty: number): void {
