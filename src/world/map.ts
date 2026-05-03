@@ -224,4 +224,4 @@ export function buildMap(): TileType[][] {
 }
 
 export const START_TILE = { x: 8, y: 2 }; // Auf der oberen Hauptstraße, Mitte
-export const BASE_PIXELS_PER_MS = 0.15;
+export const BASE_PIXELS_PER_MS = 0.25; // schneller — auto-drive sieht lebendiger aus
