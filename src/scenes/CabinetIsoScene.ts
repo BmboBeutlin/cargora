@@ -11,10 +11,12 @@ import type { Point } from '../world/pathfinding';
 import { renderHud, flashHud } from '../ui/hud';
 import {
   createTruckSpriteSet,
-  createAsphaltTileSprite,
   createGrassTileSprite,
   createSchotterTileSprite,
   createFeldwegTileSprite,
+  createAsphaltOverlaySprite,
+  parseConnectionsKey,
+  ALL_CONNECTION_KEYS,
   SPRITE_KEYS,
 } from '../assets/sprites';
 import type { Heading } from '../assets/sprites';
@@ -25,19 +27,17 @@ const TILE_H = 32;
 const ORIGIN_X = 480 - ((MAP_W - 1) - (MAP_H - 1)) * (TILE_W / 4);
 const ORIGIN_Y = 350 - ((MAP_W - 1) + (MAP_H - 1)) * (TILE_H / 4);
 
-const TILE_TEXTURE_KEY: Record<TileType, string> = {
-  asphalt: SPRITE_KEYS.tileAsphalt,
-  schotter: SPRITE_KEYS.tileSchotter,
-  feldweg: SPRITE_KEYS.tileFeldweg,
-  gras: SPRITE_KEYS.tileGrass,
-};
-
 const HEADING_TEXTURE_KEY: Record<Heading, string> = {
   se: SPRITE_KEYS.truckSE,
   nw: SPRITE_KEYS.truckNW,
   sw: SPRITE_KEYS.truckSW,
   ne: SPRITE_KEYS.truckNE,
 };
+
+// Texture-Key für eine Asphalt-Auto-Tile-Variante
+function asphaltKey(connKey: string): string {
+  return `sprite-asphalt-${connKey}`;
+}
 
 function gridToScreen(gx: number, gy: number): { x: number; y: number } {
   return {
@@ -55,14 +55,24 @@ function screenToGrid(sx: number, sy: number): { x: number; y: number } {
   };
 }
 
-// Bestimmt Heading aus Welt-Bewegung (from -> to)
 function computeHeading(from: Point, to: Point): Heading {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
-  if (dx > 0) return 'se';      // Welt-X+ → Bildschirm rechts-unten
-  if (dx < 0) return 'nw';      // Welt-X- → Bildschirm links-oben
-  if (dy > 0) return 'sw';      // Welt-Y+ → Bildschirm links-unten
-  return 'ne';                  // Welt-Y- → Bildschirm rechts-oben
+  if (dx > 0) return 'se';
+  if (dx < 0) return 'nw';
+  if (dy > 0) return 'sw';
+  return 'ne';
+}
+
+// Berechne Asphalt-Connections-Key für eine Tile basierend auf Welt-Nachbarn
+function getAsphaltConnectionsKey(map: TileType[][], x: number, y: number): string {
+  const isAsphalt = (xx: number, yy: number): boolean =>
+    xx >= 0 && yy >= 0 && xx < MAP_W && yy < MAP_H && map[yy][xx] === 'asphalt';
+  const N = isAsphalt(x, y - 1);
+  const E = isAsphalt(x + 1, y);
+  const S = isAsphalt(x, y + 1);
+  const W = isAsphalt(x - 1, y);
+  return `${N ? '1' : '0'}${E ? '1' : '0'}${S ? '1' : '0'}${W ? '1' : '0'}`;
 }
 
 export class CabinetIsoScene extends Phaser.Scene {
@@ -91,7 +101,18 @@ export class CabinetIsoScene extends Phaser.Scene {
       for (let x = 0; x < MAP_W; x++) {
         const tile = this.map[y][x];
         const { x: sx, y: sy } = gridToScreen(x, y);
-        const img = this.add.image(sx, sy, TILE_TEXTURE_KEY[tile]);
+        let textureKey: string;
+        if (tile === 'asphalt') {
+          const connKey = getAsphaltConnectionsKey(this.map, x, y);
+          textureKey = asphaltKey(connKey);
+        } else if (tile === 'gras') {
+          textureKey = SPRITE_KEYS.tileGrass;
+        } else if (tile === 'schotter') {
+          textureKey = SPRITE_KEYS.tileSchotter;
+        } else {
+          textureKey = SPRITE_KEYS.tileFeldweg;
+        }
+        const img = this.add.image(sx, sy, textureKey);
         img.setDepth(sy);
       }
     }
@@ -142,10 +163,18 @@ export class CabinetIsoScene extends Phaser.Scene {
 
   private registerSpriteTextures(): void {
     const tex = this.textures;
-    if (!tex.exists(SPRITE_KEYS.tileAsphalt)) tex.addCanvas(SPRITE_KEYS.tileAsphalt, createAsphaltTileSprite());
     if (!tex.exists(SPRITE_KEYS.tileGrass)) tex.addCanvas(SPRITE_KEYS.tileGrass, createGrassTileSprite());
     if (!tex.exists(SPRITE_KEYS.tileSchotter)) tex.addCanvas(SPRITE_KEYS.tileSchotter, createSchotterTileSprite());
     if (!tex.exists(SPRITE_KEYS.tileFeldweg)) tex.addCanvas(SPRITE_KEYS.tileFeldweg, createFeldwegTileSprite());
+
+    // Alle 16 Asphalt-Auto-Tiling-Varianten registrieren
+    for (const key of ALL_CONNECTION_KEYS) {
+      const texKey = asphaltKey(key);
+      if (!tex.exists(texKey)) {
+        tex.addCanvas(texKey, createAsphaltOverlaySprite(parseConnectionsKey(key)));
+      }
+    }
+
     const truckSet = createTruckSpriteSet();
     if (!tex.exists(SPRITE_KEYS.truckSE)) tex.addCanvas(SPRITE_KEYS.truckSE, truckSet.se);
     if (!tex.exists(SPRITE_KEYS.truckNW)) tex.addCanvas(SPRITE_KEYS.truckNW, truckSet.nw);
@@ -196,7 +225,6 @@ export class CabinetIsoScene extends Phaser.Scene {
     const next = this.currentPath[this.pathStepIndex];
     const fromTile = this.currentPath[this.pathStepIndex - 1];
 
-    // Heading vor dem Schritt setzen
     this.setHeading(computeHeading(fromTile, next));
 
     const fromInfo = TILE_INFO[this.map[fromTile.y][fromTile.x]];
@@ -281,7 +309,7 @@ export class CabinetIsoScene extends Phaser.Scene {
         }
       : null;
     renderHud({
-      mode: 'Cabinet-Iso · Sprites · A* · Heading',
+      mode: 'Cabinet-Iso · Auto-Tiling · Heading',
       tile,
       position: this.currentTile,
       flashMessage: this.flashMessage,

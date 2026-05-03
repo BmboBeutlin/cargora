@@ -11,6 +11,13 @@
 export { createTruckSprite, createTruckSpriteSet } from './truck.ts';
 export type { Heading } from './truck.ts';
 export { createAsphaltTileSprite } from './tile-asphalt.ts';
+export {
+  createAsphaltOverlaySprite,
+  connectionsKey,
+  parseConnectionsKey,
+  ALL_CONNECTION_KEYS,
+} from './asphalt-overlay.ts';
+export type { Connections } from './asphalt-overlay.ts';
 export { createGrassTileSprite } from './tile-grass.ts';
 export { createSchotterTileSprite } from './tile-schotter.ts';
 export { createFeldwegTileSprite } from './tile-feldweg.ts';
