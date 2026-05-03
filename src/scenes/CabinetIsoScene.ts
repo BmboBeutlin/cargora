@@ -24,6 +24,7 @@ import {
   createHouseSprite,
   createApartmentSprite,
   createCottageSprite,
+  createTunnelEastSprite,
   parseConnectionsKey,
   ALL_CONNECTION_KEYS,
   SPRITE_KEYS,
@@ -229,6 +230,15 @@ export class CabinetIsoScene extends Phaser.Scene {
       bridgeImg.setDepth(bridge.y * DEPTH_PER_ROW + DEPTH_BRIDGE_TILE);
     }
 
+    // Tunnel-Eingang rendern (Demo: einer am Berg-Fuß)
+    const tunnelDemo = { x: 11, y: 1 };
+    {
+      const ts = gridToScreen(tunnelDemo.x, tunnelDemo.y);
+      const tunnel = this.add.image(ts.x, ts.y + 4, SPRITE_KEYS.tunnelEast);
+      tunnel.setOrigin(0.5, 1);
+      tunnel.setDepth(tunnelDemo.y * DEPTH_PER_ROW + DEPTH_VEHICLE - 5);
+    }
+
     // Decorations rendern (Bäume, Sträucher) — nach Tiles + Wänden, vor Vehicles
     for (const dec of this.decorations) {
       const { x: sx, y: sy } = gridToScreen(dec.x, dec.y);
@@ -342,6 +352,7 @@ export class CabinetIsoScene extends Phaser.Scene {
     if (!tex.exists(SPRITE_KEYS.house)) tex.addCanvas(SPRITE_KEYS.house, createHouseSprite());
     if (!tex.exists(SPRITE_KEYS.apartment)) tex.addCanvas(SPRITE_KEYS.apartment, createApartmentSprite());
     if (!tex.exists(SPRITE_KEYS.cottage)) tex.addCanvas(SPRITE_KEYS.cottage, createCottageSprite());
+    if (!tex.exists(SPRITE_KEYS.tunnelEast)) tex.addCanvas(SPRITE_KEYS.tunnelEast, createTunnelEastSprite());
 
     // LKW-Sprite kommt aus vehicles.png (preload)
   }

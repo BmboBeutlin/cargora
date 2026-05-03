@@ -27,6 +27,7 @@ export { createBridgePillarSprite } from './bridge-pillar.ts';
 export { createTreeSprite, createPineSprite, createBushSprite } from './tree.ts';
 export { createWaterTileSprite } from './tile-water.ts';
 export { createHouseSprite, createApartmentSprite, createCottageSprite } from './house.ts';
+export { createTunnelEastSprite } from './tunnel.ts';
 
 /**
  * Recommended texture keys for Phaser registration.
@@ -50,6 +51,7 @@ export const SPRITE_KEYS = {
   house: 'sprite-house',
   apartment: 'sprite-apartment',
   cottage: 'sprite-cottage',
+  tunnelEast: 'sprite-tunnel-east',
   // Wand-Sprites werden dynamisch per Höhendiff registriert: 'sprite-wall-east-{diff}', 'sprite-wall-south-{diff}'
 } as const;
 
