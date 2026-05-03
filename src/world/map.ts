@@ -2,10 +2,9 @@
 // Phase 1: Single-Era (Modern). Era-Progression structurally prepared but not yet active.
 
 export const TILE_SIZE = 32;
-export const MAP_W = 30;
-export const MAP_H = 16;
+export const MAP_W = 18;
+export const MAP_H = 14;
 
-// Tile types — visual + speed properties.
 export const TileType = {
   Asphalt: 'asphalt',
   Schotter: 'schotter',
@@ -14,9 +13,6 @@ export const TileType = {
 } as const;
 export type TileType = (typeof TileType)[keyof typeof TileType];
 
-// Era system — prepared for Phase 4+, currently not used in gameplay.
-// Tiles default to no era tag. When era progression activates, the map editor
-// will assign era tags per tile (e.g. "this district stays medieval, that one industrializes").
 export const EraType = {
   Medieval: 'medieval',
   EarlyModern: 'early_modern',
@@ -26,7 +22,6 @@ export const EraType = {
 } as const;
 export type EraType = (typeof EraType)[keyof typeof EraType];
 
-// Biome system — prepared for Phase 1.5+, currently all tiles are "temperate" by default.
 export const BiomeType = {
   Temperate: 'temperate',
   Forest: 'forest',
@@ -57,37 +52,34 @@ const ASCII_TO_TILE: Record<string, TileType> = {
   '.': 'gras',
 };
 
-// Productive Phase-1 map: a coherent paved area with material variation.
-// EVERYTHING in the inner area is drivable. Only the outer 2-tile gras-frame is impassable.
-// Material patches (schotter, feldweg) are inside the asphalt platform — different speed modifiers,
-// but all reachable. This makes the map a sandbox where the player can drive anywhere.
+// "Stadt-Block"-Layout — schmale Asphalt-Straßen (2 Tiles breit) bilden ein Straßennetz,
+// Schotter-Quadrate sind Bezirke (Lager/Stadtviertel) zwischen den Straßen,
+// Feldweg ist ein abgelegener Nebenpfad, Gras ist Map-Hintergrund.
+// Map ist 18×14 → passt in den Game-Canvas, kein Overflow rechts.
 const MAP_ASCII: string[] = [
-  '..............................', // 0  Gras-Rand
-  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 1  Asphalt-Plattform start
-  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 2
-  '..AAssssssAAAAAAAAAAffffffAA..', // 3  Schotter-Lager links + Feldweg rechts
-  '..AAssssssAAAAAAAAAAffffffAA..', // 4
-  '..AAssssssAAAAAAAAAAffffffAA..', // 5
-  '..AAssssssAAAAAAAAAAffffffAA..', // 6
-  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 7  Querverbindung Asphalt
-  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 8
-  '..AAAAAAAAffffffAAssssssAAAA..', // 9  Feldweg links + Schotter rechts
-  '..AAAAAAAAffffffAAssssssAAAA..', // 10
-  '..AAAAAAAAffffffAAssssssAAAA..', // 11
-  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 12
-  '..AAAAAAAAAAAAAAAAAAAAAAAAAA..', // 13 Asphalt-Plattform end
-  '..............................', // 14 Gras-Rand
-  '..............................', // 15
+  '..................', // 0  Gras-Rand
+  '..................', // 1
+  '..AAAAAAAAAAAAAA..', // 2  Hauptstraße (West-Ost) oben
+  '..AAAAAAAAAAAAAA..', // 3
+  '..AA..ssss..ss..AA', // 4  Lager links + Mini-Lager rechts, Asphalt-Verbindung außen
+  '..AA..ssss..ss..AA', // 5
+  '..AA..........AA..', // 6
+  '..AAAAAAAAAAAAAA..', // 7  Querstraße
+  '..AAAAAAAAAAAAAA..', // 8
+  '..AA..fff...sss.AA', // 9  Feldweg-Bezirk + Lager-Bezirk
+  '..AA..fff...sss.AA', // 10
+  '..AA............AA', // 11
+  '..AAAAAAAAAAAAAAAA', // 12 Hauptstraße unten
+  '..................', // 13
 ];
 
-// World data — central data structure that scales for future features.
 export type WorldData = {
   width: number;
   height: number;
   tiles: TileType[][];
-  heights: number[][];           // 0 = Meereshöhe, default everywhere
-  biomes: (BiomeType | null)[][];// null = default biome
-  eras: (EraType | null)[][];    // null = no era assignment
+  heights: number[][];
+  biomes: (BiomeType | null)[][];
+  eras: (EraType | null)[][];
 };
 
 export function buildWorld(): WorldData {
@@ -107,10 +99,9 @@ export function buildWorld(): WorldData {
   };
 }
 
-// Backwards-compatible export for scenes that just want tiles.
 export function buildMap(): TileType[][] {
   return buildWorld().tiles;
 }
 
-export const START_TILE = { x: 14, y: 7 }; // Mitte der Asphalt-Plattform, sicher befahrbar
+export const START_TILE = { x: 8, y: 2 }; // Auf der oberen Hauptstraße, Mitte
 export const BASE_PIXELS_PER_MS = 0.15;

@@ -9,11 +9,30 @@ import type { TileType } from '../world/map';
 import { findPath } from '../world/pathfinding';
 import type { Point } from '../world/pathfinding';
 import { renderHud, flashHud } from '../ui/hud';
+import {
+  createTruckSprite,
+  createAsphaltTileSprite,
+  createGrassTileSprite,
+  createSchotterTileSprite,
+  createFeldwegTileSprite,
+  SPRITE_KEYS,
+} from '../assets/sprites';
 
 const TILE_W = 64;
 const TILE_H = 32;
-const ORIGIN_X = 480;
-const ORIGIN_Y = 80;
+
+// Origin so gewählt, dass die gesamte Map im Game-Canvas (960×700) zentriert ist.
+// Map-Span: x ∈ [-15*32, 17*32] = [-480, 544], y ∈ [0, 31*16] = [0, 496]
+// Center the map at canvas (480, 350)
+const ORIGIN_X = 480 - ((MAP_W - 1) - (MAP_H - 1)) * (TILE_W / 4);
+const ORIGIN_Y = 350 - ((MAP_W - 1) + (MAP_H - 1)) * (TILE_H / 4);
+
+const TILE_TEXTURE_KEY: Record<TileType, string> = {
+  asphalt: SPRITE_KEYS.tileAsphalt,
+  schotter: SPRITE_KEYS.tileSchotter,
+  feldweg: SPRITE_KEYS.tileFeldweg,
+  gras: SPRITE_KEYS.tileGrass,
+};
 
 function gridToScreen(gx: number, gy: number): { x: number; y: number } {
   return {
@@ -33,8 +52,7 @@ function screenToGrid(sx: number, sy: number): { x: number; y: number } {
 
 export class CabinetIsoScene extends Phaser.Scene {
   private map: TileType[][] = [];
-  private truck!: Phaser.GameObjects.Polygon;
-  private truckTop!: Phaser.GameObjects.Polygon;
+  private truck!: Phaser.GameObjects.Image;
   private hoverTile!: Phaser.GameObjects.Polygon;
   private pathMarkers: Phaser.GameObjects.Arc[] = [];
   private moving = false;
@@ -50,33 +68,29 @@ export class CabinetIsoScene extends Phaser.Scene {
   }
 
   create(): void {
+    this.registerSpriteTextures();
     this.map = buildMap();
+
+    for (let y = 0; y < MAP_H; y++) {
+      for (let x = 0; x < MAP_W; x++) {
+        const tile = this.map[y][x];
+        const { x: sx, y: sy } = gridToScreen(x, y);
+        const img = this.add.image(sx, sy, TILE_TEXTURE_KEY[tile]);
+        img.setDepth(sy);
+      }
+    }
 
     const halfW = TILE_W / 2;
     const halfH = TILE_H / 2;
     const diamond = [-halfW, 0, 0, -halfH, halfW, 0, 0, halfH];
-
-    for (let y = 0; y < MAP_H; y++) {
-      for (let x = 0; x < MAP_W; x++) {
-        const info = TILE_INFO[this.map[y][x]];
-        const { x: sx, y: sy } = gridToScreen(x, y);
-        const tile = this.add.polygon(sx, sy, diamond, info.color);
-        tile.setDepth(sy);
-      }
-    }
-
     this.hoverTile = this.add.polygon(0, 0, diamond, 0xffffff, 0);
     this.hoverTile.setStrokeStyle(2, 0xffffff, 0.85);
     this.hoverTile.setDepth(99999);
     this.hoverTile.setVisible(false);
 
     const start = gridToScreen(this.currentTile.x, this.currentTile.y);
-    const truckBox = [-12, -6, 12, -6, 12, 6, -12, 6];
-    const truckTop = [-10, -16, 10, -16, 12, -6, -12, -6];
-    this.truck = this.add.polygon(start.x, start.y - 6, truckBox, 0x3a78c8);
+    this.truck = this.add.image(start.x, start.y - 8, SPRITE_KEYS.truck);
     this.truck.setDepth(start.y + 1000);
-    this.truckTop = this.add.polygon(start.x, start.y - 6, truckTop, 0x5a98e8);
-    this.truckTop.setDepth(start.y + 1001);
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
       const wp = this.cameras.main.getWorldPoint(p.x, p.y);
@@ -108,6 +122,15 @@ export class CabinetIsoScene extends Phaser.Scene {
     });
 
     this.updateHud();
+  }
+
+  private registerSpriteTextures(): void {
+    const tex = this.textures;
+    if (!tex.exists(SPRITE_KEYS.truck)) tex.addCanvas(SPRITE_KEYS.truck, createTruckSprite());
+    if (!tex.exists(SPRITE_KEYS.tileAsphalt)) tex.addCanvas(SPRITE_KEYS.tileAsphalt, createAsphaltTileSprite());
+    if (!tex.exists(SPRITE_KEYS.tileGrass)) tex.addCanvas(SPRITE_KEYS.tileGrass, createGrassTileSprite());
+    if (!tex.exists(SPRITE_KEYS.tileSchotter)) tex.addCanvas(SPRITE_KEYS.tileSchotter, createSchotterTileSprite());
+    if (!tex.exists(SPRITE_KEYS.tileFeldweg)) tex.addCanvas(SPRITE_KEYS.tileFeldweg, createFeldwegTileSprite());
   }
 
   private startNavigation(tx: number, ty: number): void {
@@ -156,14 +179,13 @@ export class CabinetIsoScene extends Phaser.Scene {
     const duration = distance / (BASE_PIXELS_PER_MS * avgSpeed);
 
     this.tweens.add({
-      targets: [this.truck, this.truckTop],
+      targets: this.truck,
       x: toS.x,
-      y: toS.y - 6,
+      y: toS.y - 8,
       duration,
       ease: 'Linear',
       onUpdate: () => {
         this.truck.setDepth(this.truck.y + 1000);
-        this.truckTop.setDepth(this.truck.y + 1001);
       },
       onComplete: () => {
         this.currentTile = { x: next.x, y: next.y };
@@ -229,7 +251,7 @@ export class CabinetIsoScene extends Phaser.Scene {
         }
       : null;
     renderHud({
-      mode: 'Cabinet-Iso · A*-Pathfinding',
+      mode: 'Cabinet-Iso · Sprites · A*',
       tile,
       position: this.currentTile,
       flashMessage: this.flashMessage,
