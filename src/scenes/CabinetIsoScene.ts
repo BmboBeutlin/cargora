@@ -127,11 +127,11 @@ export class CabinetIsoScene extends Phaser.Scene {
         // Depth: grundsätzlich Iso-Y-Sort, höhere Tiles bekommen leichten Bonus
         img.setDepth(sy + h * 0.5);
 
-        // Höhen-Schattierung: höhere Tiles bekommen subtiles Licht-Highlight oben drauf (Sonnenlicht-Effekt)
+        // Höhen-Schattierung: höhere Tiles bekommen Licht-Highlight (Sonnenlicht-Effekt)
         if (h > 0) {
           const highlight = this.add.image(sx, renderY, textureKey);
-          highlight.setAlpha(0.08 * h);
-          highlight.setTint(0xffffff);
+          highlight.setAlpha(Math.min(0.35, 0.15 * h));
+          highlight.setTint(0xffffe8);
           highlight.setBlendMode(Phaser.BlendModes.ADD);
           highlight.setDepth(sy + h * 0.5 + 0.01);
         }
