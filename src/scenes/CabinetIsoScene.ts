@@ -132,6 +132,8 @@ export class CabinetIsoScene extends Phaser.Scene {
   private currentPath: Point[] = [];
   private pathStepIndex = 0;
   private currentHeading: Heading = 'se';
+  private autoMode = true;
+  private autoTargets: { x: number; y: number }[] = [];
 
   constructor() {
     super('cabinet-iso');
@@ -308,7 +310,32 @@ export class CabinetIsoScene extends Phaser.Scene {
       this.cameras.main.setZoom(next);
     });
 
+    // Auto-Drive: sammle alle ebenen Asphalt-Tiles als Demo-Targets
+    if (this.autoMode) {
+      for (let y = 0; y < MAP_H; y++) {
+        for (let x = 0; x < MAP_W; x++) {
+          if (this.map[y][x] === 'asphalt' && this.heights[y][x] === 0) {
+            this.autoTargets.push({ x, y });
+          }
+        }
+      }
+      // Erste Bewegung kurz nach Start
+      this.time.delayedCall(800, () => this.autoNext());
+    }
+
     this.updateHud();
+  }
+
+  private autoNext(): void {
+    if (!this.autoMode || this.moving) return;
+    if (this.autoTargets.length === 0) return;
+    // Nächstes Ziel: zufällig aus den 5 vom aktuellen Tile am weitesten entfernten Tiles
+    const sorted = this.autoTargets
+      .map((t) => ({ t, d: Math.abs(t.x - this.currentTile.x) + Math.abs(t.y - this.currentTile.y) }))
+      .sort((a, b) => b.d - a.d)
+      .slice(0, 5);
+    const pick = sorted[Math.floor(Math.random() * sorted.length)].t;
+    this.startNavigation(pick.x, pick.y);
   }
 
   private registerSpriteTextures(): void {
@@ -394,6 +421,10 @@ export class CabinetIsoScene extends Phaser.Scene {
       this.moving = false;
       this.clearPathMarkers();
       this.updateHud();
+      // Auto-Drive: nächstes Target nach kurzer Pause
+      if (this.autoMode) {
+        this.time.delayedCall(1200, () => this.autoNext());
+      }
       return;
     }
 
