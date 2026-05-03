@@ -20,6 +20,7 @@ import {
   createTreeSprite,
   createPineSprite,
   createBushSprite,
+  createWaterTileSprite,
   parseConnectionsKey,
   ALL_CONNECTION_KEYS,
   SPRITE_KEYS,
@@ -161,6 +162,8 @@ export class CabinetIsoScene extends Phaser.Scene {
           textureKey = SPRITE_KEYS.tileGrass;
         } else if (tile === 'schotter') {
           textureKey = SPRITE_KEYS.tileSchotter;
+        } else if (tile === 'wasser') {
+          textureKey = SPRITE_KEYS.tileWasser;
         } else {
           textureKey = SPRITE_KEYS.tileFeldweg;
         }
@@ -297,6 +300,7 @@ export class CabinetIsoScene extends Phaser.Scene {
     if (!tex.exists(SPRITE_KEYS.tileGrass)) tex.addCanvas(SPRITE_KEYS.tileGrass, createGrassTileSprite());
     if (!tex.exists(SPRITE_KEYS.tileSchotter)) tex.addCanvas(SPRITE_KEYS.tileSchotter, createSchotterTileSprite());
     if (!tex.exists(SPRITE_KEYS.tileFeldweg)) tex.addCanvas(SPRITE_KEYS.tileFeldweg, createFeldwegTileSprite());
+    if (!tex.exists(SPRITE_KEYS.tileWasser)) tex.addCanvas(SPRITE_KEYS.tileWasser, createWaterTileSprite());
 
     // Alle 16 Asphalt-Auto-Tiling-Varianten registrieren (mit Gras-Hintergrund)
     for (const key of ALL_CONNECTION_KEYS) {

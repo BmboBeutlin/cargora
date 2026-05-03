@@ -16,17 +16,20 @@ import type { Heading } from './truck';
 
 export const VEHICLE_SHEET_PATH = '/sprites/vehicles.png';
 
-// Beobachtung: 17x48 zeigt ZWEI LKW übereinander. Sheet hat vermutlich 2 Reihen à 24 Pixel.
+// 17px Frame-Breite passt mathematisch (680/40 = 17).
+// Sheet-Höhe 48 in einer Reihe = 1 Truck pro Frame.
+// 40 Frames total. Layout vermutlich: 5 Farben × 8 Headings = 40, oder andere Aufteilung.
 export const VEHICLE_FRAME_W = 17;
-export const VEHICLE_FRAME_H = 24;
-export const VEHICLE_FRAME_COUNT = 80;
+export const VEHICLE_FRAME_H = 48;
+export const VEHICLE_FRAME_COUNT = 40;
 
-// Color-Variant 0 (Frames 0-3): provisorische Heading-Zuordnung.
-// Wenn Patrick im Inspector sagt "Frame 5 ist eigentlich SE", anpassen.
+// Sheet-Layout (versuchsweise): 10 Farben × 4 Headings = 40 Frames.
+// Pro Farbe 4 zusammenhängende Frames in Reihenfolge NW, NE, SE, SW.
+// Wir nehmen Farbe 0 (Rot) als Standard-LKW (Frames 0-3).
 export const HEADING_FRAME_MAP: Record<Heading, number> = {
-  se: 0,
+  nw: 0,
   ne: 1,
-  nw: 2,
+  se: 2,
   sw: 3,
 };
 

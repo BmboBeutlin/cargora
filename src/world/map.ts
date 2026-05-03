@@ -10,6 +10,7 @@ export const TileType = {
   Schotter: 'schotter',
   Feldweg: 'feldweg',
   Gras: 'gras',
+  Wasser: 'wasser',
 } as const;
 export type TileType = (typeof TileType)[keyof typeof TileType];
 
@@ -43,6 +44,7 @@ export const TILE_INFO: Record<TileType, TileInfo> = {
   schotter: { name: 'Schotter', color: 0x8a7a5e, edgeColor: 0x6a5a3e, speedMod: 0.55 },
   feldweg:  { name: 'Feldweg',  color: 0xa68a52, edgeColor: 0x866a32, speedMod: 0.30 },
   gras:     { name: 'Gras',     color: 0x3a5a3a, edgeColor: 0x1e3a1e, speedMod: 0    },
+  wasser:   { name: 'Wasser',   color: 0x3a5a8e, edgeColor: 0x2a4a7e, speedMod: 0    },
 };
 
 const ASCII_TO_TILE: Record<string, TileType> = {
@@ -50,6 +52,7 @@ const ASCII_TO_TILE: Record<string, TileType> = {
   s: 'schotter',
   f: 'feldweg',
   '.': 'gras',
+  '~': 'wasser',
 };
 
 // "Stadt-Block"-Layout — schmale Asphalt-Straßen (2 Tiles breit) bilden ein Straßennetz,
@@ -61,7 +64,7 @@ const MAP_ASCII: string[] = [
   '..................', // 1
   '..AAAAAAAAAAAAAA..', // 2  Hauptstraße (West-Ost) oben
   '..AAAAAAAAAAAAAA..', // 3
-  '..AA..ssss..ss..AA', // 4  Lager links + Mini-Lager rechts, Asphalt-Verbindung außen
+  '..AA..ssss..ss..AA', // 4  Lager links + Mini-Lager rechts
   '..AA..ssss..ss..AA', // 5
   '..AA..........AA..', // 6
   '..AAAAAAAAAAAAAA..', // 7  Querstraße
@@ -70,7 +73,7 @@ const MAP_ASCII: string[] = [
   '..AA..fff...sss.AA', // 10
   '..AA............AA', // 11
   '..AAAAAAAAAAAAAAAA', // 12 Hauptstraße unten
-  '..................', // 13
+  '....~~~~~~~~~~....', // 13 FLUSS unten
 ];
 
 // Brücke: Asphalt auf Höhe X über Boden-Tile auf Höhe Y (X > Y)
@@ -143,19 +146,14 @@ export function buildWorld(): WorldData {
   heights[1][10] = 2;
   heights[1][11] = 2;
   heights[1][12] = 1;
-  // Kleiner Hügel unten Gras
-  heights[13][7] = 1;
-  heights[13][8] = 2;
-  heights[13][9] = 2;
-  heights[13][10] = 1;
+  // Wasser ist auf Höhe 0 (default), Brücke darüber auf Höhe 2
 
-  // Demo-Brücke: 4 Asphalt-Tiles in einer Reihe, Höhe 2, auf der unteren Gras-Fläche (Zeile 13)
-  // Sichtbare freistehende Brücke mit Pfeilern darunter
+  // Demo-Brücke: Asphalt-Brücke ÜBER den Fluss (Zeile 13)
   const bridges: BridgeTile[] = [
-    { x: 4, y: 13, bridgeHeight: 2 },
-    { x: 5, y: 13, bridgeHeight: 2 },
-    { x: 6, y: 13, bridgeHeight: 2 },
-    { x: 7, y: 13, bridgeHeight: 2 },
+    { x: 8, y: 13, bridgeHeight: 2 },
+    { x: 9, y: 13, bridgeHeight: 2 },
+    { x: 10, y: 13, bridgeHeight: 2 },
+    { x: 11, y: 13, bridgeHeight: 2 },
   ];
 
   // Demo-Tunnel: Eingang am Berg-Fuß
@@ -180,10 +178,9 @@ export function buildWorld(): WorldData {
     { x: 13, y: 1, kind: 'tree', offsetX: 0.2 },
     { x: 14, y: 1, kind: 'tree' },
     { x: 15, y: 1, kind: 'pine', offsetX: -0.1 },
-    // Bäume unten
+    // Bäume an den Fluss-Ufern
     { x: 1, y: 13, kind: 'pine' },
     { x: 2, y: 13, kind: 'tree', offsetX: 0.3 },
-    { x: 3, y: 13, kind: 'bush' },
     { x: 14, y: 13, kind: 'pine', offsetX: 0.1 },
     { x: 15, y: 13, kind: 'tree' },
     { x: 16, y: 13, kind: 'pine', offsetX: -0.2 },

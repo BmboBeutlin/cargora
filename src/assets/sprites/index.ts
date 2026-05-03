@@ -25,6 +25,7 @@ export { createWarehouseSprite } from './warehouse.ts';
 export { createEastWallSprite, createSouthWallSprite } from './tile-wall.ts';
 export { createBridgePillarSprite } from './bridge-pillar.ts';
 export { createTreeSprite, createPineSprite, createBushSprite } from './tree.ts';
+export { createWaterTileSprite } from './tile-water.ts';
 
 /**
  * Recommended texture keys for Phaser registration.
@@ -40,6 +41,7 @@ export const SPRITE_KEYS = {
   tileGrass: 'sprite-tile-grass',
   tileSchotter: 'sprite-tile-schotter',
   tileFeldweg: 'sprite-tile-feldweg',
+  tileWasser: 'sprite-tile-wasser',
   warehouse: 'sprite-warehouse',
   tree: 'sprite-tree',
   pine: 'sprite-pine',
