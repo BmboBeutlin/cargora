@@ -22,6 +22,7 @@ export { createGrassTileSprite } from './tile-grass.ts';
 export { createSchotterTileSprite } from './tile-schotter.ts';
 export { createFeldwegTileSprite } from './tile-feldweg.ts';
 export { createWarehouseSprite } from './warehouse.ts';
+export { createEastWallSprite, createSouthWallSprite } from './tile-wall.ts';
 
 /**
  * Recommended texture keys for Phaser registration.
@@ -38,7 +39,15 @@ export const SPRITE_KEYS = {
   tileSchotter: 'sprite-tile-schotter',
   tileFeldweg: 'sprite-tile-feldweg',
   warehouse: 'sprite-warehouse',
+  // Wand-Sprites werden dynamisch per Höhendiff registriert: 'sprite-wall-east-{diff}', 'sprite-wall-south-{diff}'
 } as const;
+
+export function eastWallKey(heightDiff: number): string {
+  return `sprite-wall-east-${heightDiff}`;
+}
+export function southWallKey(heightDiff: number): string {
+  return `sprite-wall-south-${heightDiff}`;
+}
 
 export type SpriteKey = (typeof SPRITE_KEYS)[keyof typeof SPRITE_KEYS];
 

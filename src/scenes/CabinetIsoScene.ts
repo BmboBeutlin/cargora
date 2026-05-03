@@ -15,9 +15,13 @@ import {
   createSchotterTileSprite,
   createFeldwegTileSprite,
   createAsphaltOverlaySprite,
+  createEastWallSprite,
+  createSouthWallSprite,
   parseConnectionsKey,
   ALL_CONNECTION_KEYS,
   SPRITE_KEYS,
+  eastWallKey,
+  southWallKey,
 } from '../assets/sprites';
 import type { Heading } from '../assets/sprites';
 
@@ -122,6 +126,41 @@ export class CabinetIsoScene extends Phaser.Scene {
         const img = this.add.image(sx, renderY, textureKey);
         // Depth: grundsätzlich Iso-Y-Sort, höhere Tiles bekommen leichten Bonus
         img.setDepth(sy + h * 0.5);
+
+        // Höhen-Schattierung: höhere Tiles bekommen subtiles Licht-Highlight oben drauf (Sonnenlicht-Effekt)
+        if (h > 0) {
+          const highlight = this.add.image(sx, renderY, textureKey);
+          highlight.setAlpha(0.08 * h);
+          highlight.setTint(0xffffff);
+          highlight.setBlendMode(Phaser.BlendModes.ADD);
+          highlight.setDepth(sy + h * 0.5 + 0.01);
+        }
+
+        // Höhen-Wände: rendere Wand-Sprites zur E- und S-Seite, wenn höher als Nachbar
+        // East-Wand (Welt X+, Bildschirm rechts-unten)
+        // Geteilte Edge geht von Tile-S-Spitze (sx, renderY+16) zu Tile-E-Spitze (sx+32, renderY)
+        // Sprite-Top-Left bei (sx, renderY): Edge verläuft im Sprite von (0, 16) nach (32, 0)
+        if (x + 1 < MAP_W) {
+          const hE = this.heights[y][x + 1];
+          if (h > hE) {
+            const diff = h - hE;
+            const wall = this.add.image(sx, renderY, eastWallKey(diff));
+            wall.setOrigin(0, 0);
+            wall.setDepth(sy + h * 0.5 - 0.1);
+          }
+        }
+        // South-Nachbar (Welt Y+, Bildschirm links-unten)
+        // Geteilte Edge: zwischen W-Spitze (sx-32, sy) und S-Spitze (sx, sy+16)
+        // Sprite-Top-Left bei (sx - 32, sy - h*HEIGHT_PIXELS) (= W-Spitze des erhöhten Tiles)
+        if (y + 1 < MAP_H) {
+          const hS = this.heights[y + 1][x];
+          if (h > hS) {
+            const diff = h - hS;
+            const wall = this.add.image(sx - TILE_W / 2, renderY, southWallKey(diff));
+            wall.setOrigin(0, 0);
+            wall.setDepth(sy + h * 0.5 - 0.1);
+          }
+        }
       }
     }
 
@@ -183,6 +222,14 @@ export class CabinetIsoScene extends Phaser.Scene {
       if (!tex.exists(texKey)) {
         tex.addCanvas(texKey, createAsphaltOverlaySprite(parseConnectionsKey(key)));
       }
+    }
+
+    // Wand-Sprites für Höhendifferenzen 1, 2, 3 (mehr falls benötigt)
+    for (let diff = 1; diff <= 3; diff++) {
+      const eKey = eastWallKey(diff);
+      if (!tex.exists(eKey)) tex.addCanvas(eKey, createEastWallSprite(diff));
+      const sKey = southWallKey(diff);
+      if (!tex.exists(sKey)) tex.addCanvas(sKey, createSouthWallSprite(diff));
     }
 
     const truckSet = createTruckSpriteSet();

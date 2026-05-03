@@ -90,11 +90,26 @@ export function buildWorld(): WorldData {
   const biomes = Array.from({ length: MAP_H }, () => new Array(MAP_W).fill(null));
   const eras = Array.from({ length: MAP_H }, () => new Array(MAP_W).fill(null));
 
-  // Demo-Berg: kleiner Hügel auf den Gras-Tiles zwischen den oberen Schotter-Bezirken (Pfad A Schritt 1)
-  heights[4][10] = 1;
-  heights[4][11] = 1;
-  heights[5][10] = 2;
-  heights[5][11] = 1;
+  // Demo-Berg: deutlicher Pyramiden-Hügel auf der oberen Gras-Fläche (Zeile 0-1, alle Gras)
+  // Plus kleiner Hügel auf der unteren Gras-Fläche (Zeile 13)
+  // Heights erst NUR auf Gras setzen, nicht auf Asphalt/Schotter (würde Auto-Tiling brechen)
+  heights[0][7] = 1;
+  heights[0][8] = 2;
+  heights[0][9] = 3;
+  heights[0][10] = 3;
+  heights[0][11] = 2;
+  heights[0][12] = 1;
+  heights[1][7] = 1;
+  heights[1][8] = 2;
+  heights[1][9] = 2;
+  heights[1][10] = 2;
+  heights[1][11] = 2;
+  heights[1][12] = 1;
+  // Kleiner Hügel unten Gras
+  heights[13][7] = 1;
+  heights[13][8] = 2;
+  heights[13][9] = 2;
+  heights[13][10] = 1;
 
   return {
     width: MAP_W,
