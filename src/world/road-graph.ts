@@ -117,28 +117,49 @@ export function positionOnEdge(graph: RoadGraph, edgeId: RoadEdgeId, t: number):
   };
 }
 
-// Eine kleine Demo-Strecke für ersten Test: zwei Knoten + eine Kante quer durch die Map
+// Demo-Graph: drei Edges um verschiedene Pfad-B-Features zu demonstrieren:
+//   1. Gerade Diagonale (von oben-links nach unten-rechts)
+//   2. Kurve mit einem Bezier-Kontrollpunkt
+//   3. Brücke (Edge mit erhöhter Mitte via Z-Höhe)
 export function createDemoGraph(): RoadGraph {
   const graph = createEmptyGraph();
-  const nA: RoadNode = {
-    id: 'demo-a',
-    position: { x: 4, y: 4, z: 0 },
-    type: 'endpoint',
-  };
-  const nB: RoadNode = {
-    id: 'demo-b',
-    position: { x: 14, y: 10, z: 0 },
-    type: 'endpoint',
-  };
-  addNode(graph, nA);
-  addNode(graph, nB);
+  const n1: RoadNode = { id: 'n1', position: { x: 3, y: 11, z: 0 }, type: 'endpoint' };
+  const n2: RoadNode = { id: 'n2', position: { x: 15, y: 3, z: 0 }, type: 'endpoint' };
+  const n3: RoadNode = { id: 'n3', position: { x: 3, y: 3, z: 0 }, type: 'endpoint' };
+  const n4: RoadNode = { id: 'n4', position: { x: 15, y: 11, z: 0 }, type: 'endpoint' };
+  addNode(graph, n1);
+  addNode(graph, n2);
+  addNode(graph, n3);
+  addNode(graph, n4);
+
+  // Edge 1: gerade Diagonale n1 → n2 (von links-unten nach rechts-oben)
   addEdge(graph, {
-    id: 'demo-edge',
-    from: 'demo-a',
-    to: 'demo-b',
+    id: 'e-straight',
+    from: 'n1', to: 'n2',
     controlPoints: [],
-    lanes: 2,
-    material: 'asphalt',
+    lanes: 2, material: 'asphalt',
   });
+
+  // Edge 2: Kurve n3 → n4 mit Bezier-Kontrollpunkt
+  addEdge(graph, {
+    id: 'e-curve',
+    from: 'n3', to: 'n4',
+    controlPoints: [{ x: 9, y: 1, z: 0 }],
+    lanes: 2, material: 'asphalt',
+  });
+
+  // Edge 3: Brücke — gleiche Endpunkte aber mit erhöhter Mitte (Z=3)
+  // (Für jetzt eine Edge, die wie eine Brücke aussieht — visuell höher)
+  const nBridgeA: RoadNode = { id: 'nb1', position: { x: 5, y: 8, z: 0 }, type: 'endpoint' };
+  const nBridgeB: RoadNode = { id: 'nb2', position: { x: 13, y: 8, z: 0 }, type: 'endpoint' };
+  addNode(graph, nBridgeA);
+  addNode(graph, nBridgeB);
+  addEdge(graph, {
+    id: 'e-bridge',
+    from: 'nb1', to: 'nb2',
+    controlPoints: [{ x: 9, y: 8, z: 3 }],
+    lanes: 2, material: 'asphalt',
+  });
+
   return graph;
 }

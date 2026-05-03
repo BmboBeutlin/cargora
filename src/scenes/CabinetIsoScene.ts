@@ -8,8 +8,11 @@ import {
 import type { TileType } from '../world/map';
 import { findPath } from '../world/pathfinding';
 import type { Point } from '../world/pathfinding';
+import { createDemoGraph } from '../world/road-graph';
+import { renderGraph } from '../world/spline-renderer';
 import { renderHud, flashHud } from '../ui/hud';
 import {
+  createTruckSpriteSet,
   createGrassTileSprite,
   createSchotterTileSprite,
   createFeldwegTileSprite,
@@ -19,13 +22,6 @@ import {
   SPRITE_KEYS,
 } from '../assets/sprites';
 import type { Heading } from '../assets/sprites';
-import {
-  VEHICLE_SHEET_PATH,
-  VEHICLE_FRAME_W,
-  VEHICLE_FRAME_H,
-  HEADING_FRAME_MAP,
-  VEHICLE_TEXTURE_KEY,
-} from '../assets/sprites/vehicle-sheet';
 
 const TILE_W = 64;
 const TILE_H = 32;
@@ -54,6 +50,13 @@ function screenToGrid(sx: number, sy: number): { x: number; y: number } {
     y: Math.round((dy - dx) / 2),
   };
 }
+
+const HEADING_TEXTURE_KEY: Record<Heading, string> = {
+  se: SPRITE_KEYS.truckSE,
+  nw: SPRITE_KEYS.truckNW,
+  sw: SPRITE_KEYS.truckSW,
+  ne: SPRITE_KEYS.truckNE,
+};
 
 function computeHeading(from: Point, to: Point): Heading {
   const dx = to.x - from.x;
@@ -93,13 +96,6 @@ export class CabinetIsoScene extends Phaser.Scene {
     super('cabinet-iso');
   }
 
-  preload(): void {
-    this.load.spritesheet(VEHICLE_TEXTURE_KEY, VEHICLE_SHEET_PATH, {
-      frameWidth: VEHICLE_FRAME_W,
-      frameHeight: VEHICLE_FRAME_H,
-    });
-  }
-
   create(): void {
     this.registerSpriteTextures();
     this.map = buildMap();
@@ -124,6 +120,10 @@ export class CabinetIsoScene extends Phaser.Scene {
       }
     }
 
+    // Pfad B Demo: Spline-Straßen über die Tiles legen (3 Test-Edges)
+    const graph = createDemoGraph();
+    renderGraph(this, graph, (gx, gy) => gridToScreen(gx, gy));
+
     const halfW = TILE_W / 2;
     const halfH = TILE_H / 2;
     const diamond = [-halfW, 0, 0, -halfH, halfW, 0, 0, halfH];
@@ -133,8 +133,8 @@ export class CabinetIsoScene extends Phaser.Scene {
     this.hoverTile.setVisible(false);
 
     const start = gridToScreen(this.currentTile.x, this.currentTile.y);
-    this.truck = this.add.image(start.x, start.y - 6, VEHICLE_TEXTURE_KEY, HEADING_FRAME_MAP[this.currentHeading]);
-    this.truck.setScale(0.85); // Sheet-Sprites sind 40x48, etwas größer dargestellt
+    this.truck = this.add.image(start.x, start.y - 6, HEADING_TEXTURE_KEY[this.currentHeading]);
+    this.truck.setScale(0.65);
     this.truck.setDepth(start.y + 1000);
 
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
@@ -183,13 +183,17 @@ export class CabinetIsoScene extends Phaser.Scene {
       }
     }
 
-    // Truck-Sprite kommt jetzt aus vehicles.png (preload), nicht mehr programmatisch
+    const truckSet = createTruckSpriteSet();
+    if (!tex.exists(SPRITE_KEYS.truckSE)) tex.addCanvas(SPRITE_KEYS.truckSE, truckSet.se);
+    if (!tex.exists(SPRITE_KEYS.truckNW)) tex.addCanvas(SPRITE_KEYS.truckNW, truckSet.nw);
+    if (!tex.exists(SPRITE_KEYS.truckSW)) tex.addCanvas(SPRITE_KEYS.truckSW, truckSet.sw);
+    if (!tex.exists(SPRITE_KEYS.truckNE)) tex.addCanvas(SPRITE_KEYS.truckNE, truckSet.ne);
   }
 
   private setHeading(h: Heading): void {
     if (h === this.currentHeading) return;
     this.currentHeading = h;
-    this.truck.setFrame(HEADING_FRAME_MAP[h]);
+    this.truck.setTexture(HEADING_TEXTURE_KEY[h]);
   }
 
   private startNavigation(tx: number, ty: number): void {
