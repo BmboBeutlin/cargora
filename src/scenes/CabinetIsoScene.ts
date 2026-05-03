@@ -21,6 +21,9 @@ import {
   createPineSprite,
   createBushSprite,
   createWaterTileSprite,
+  createHouseSprite,
+  createApartmentSprite,
+  createCottageSprite,
   parseConnectionsKey,
   ALL_CONNECTION_KEYS,
   SPRITE_KEYS,
@@ -235,6 +238,9 @@ export class CabinetIsoScene extends Phaser.Scene {
       const key =
         dec.kind === 'pine' ? SPRITE_KEYS.pine
         : dec.kind === 'bush' ? SPRITE_KEYS.bush
+        : dec.kind === 'house' ? SPRITE_KEYS.house
+        : dec.kind === 'apartment' ? SPRITE_KEYS.apartment
+        : dec.kind === 'cottage' ? SPRITE_KEYS.cottage
         : SPRITE_KEYS.tree;
       const dx = sx + offsetX;
       const dy = sy - h * HEIGHT_PIXELS + 8 + offsetY;
@@ -333,6 +339,9 @@ export class CabinetIsoScene extends Phaser.Scene {
     if (!tex.exists(SPRITE_KEYS.tree)) tex.addCanvas(SPRITE_KEYS.tree, createTreeSprite());
     if (!tex.exists(SPRITE_KEYS.pine)) tex.addCanvas(SPRITE_KEYS.pine, createPineSprite());
     if (!tex.exists(SPRITE_KEYS.bush)) tex.addCanvas(SPRITE_KEYS.bush, createBushSprite());
+    if (!tex.exists(SPRITE_KEYS.house)) tex.addCanvas(SPRITE_KEYS.house, createHouseSprite());
+    if (!tex.exists(SPRITE_KEYS.apartment)) tex.addCanvas(SPRITE_KEYS.apartment, createApartmentSprite());
+    if (!tex.exists(SPRITE_KEYS.cottage)) tex.addCanvas(SPRITE_KEYS.cottage, createCottageSprite());
 
     // LKW-Sprite kommt aus vehicles.png (preload)
   }

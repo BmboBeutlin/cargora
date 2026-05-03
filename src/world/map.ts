@@ -100,11 +100,11 @@ export type SlopeTile = {
   baseHeight: number; // niedrigere Seite
 };
 
-// Decoration: Baum/Strauch/anderes auf einer Tile
+// Decoration: Baum/Strauch/Haus/anderes auf einer Tile
 export type Decoration = {
   x: number;
   y: number;
-  kind: 'tree' | 'pine' | 'bush';
+  kind: 'tree' | 'pine' | 'bush' | 'house' | 'apartment' | 'cottage';
   // Sub-Position innerhalb des Tiles (0-1 für jitter)
   offsetX?: number;
   offsetY?: number;
@@ -189,6 +189,20 @@ export function buildWorld(): WorldData {
     { x: 13, y: 6, kind: 'bush' },
     { x: 4, y: 11, kind: 'bush', offsetX: -0.1 },
     { x: 13, y: 11, kind: 'bush', offsetX: 0.2 },
+    // Häuser auf den Schotter-Bezirken (Stadt-Effekt)
+    { x: 6, y: 4, kind: 'house' },
+    { x: 8, y: 4, kind: 'apartment', offsetX: 0.2 },
+    { x: 6, y: 5, kind: 'cottage', offsetX: -0.2 },
+    { x: 8, y: 5, kind: 'house', offsetX: 0.1 },
+    { x: 12, y: 4, kind: 'apartment' },
+    { x: 13, y: 4, kind: 'house', offsetX: 0.1 },
+    { x: 12, y: 5, kind: 'cottage' },
+    { x: 13, y: 5, kind: 'house', offsetX: -0.1 },
+    // Häuser auf Schotter unten
+    { x: 12, y: 9, kind: 'apartment', offsetX: 0.2 },
+    { x: 14, y: 9, kind: 'house' },
+    { x: 12, y: 10, kind: 'house', offsetX: -0.1 },
+    { x: 14, y: 10, kind: 'cottage', offsetX: 0.2 },
   ];
 
   return {
