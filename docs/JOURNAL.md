@@ -4,6 +4,93 @@
 
 ---
 
+## 2026-05-03/04 (Nacht 3) — Marathonsession: Pfad A komplett (OpenTTD-Niveau erreicht)
+
+**Dauer:** ~3-4 Stunden autonom · **Claude-Modell:** Opus 4.7 (1M context)
+
+Patrick ging ins Bett mit der Aufgabe: „arbeite die Nacht durch, bis das Straßensystem mindestens auf OpenTTD-Niveau ist". Dieser Eintrag dokumentiert den Stand bei Sunset.
+
+### Strategische Entscheidungen während der Nacht
+
+- **ADR-010 verworfen, ADR-011 akzeptiert:** Patrick hat während der Session entschieden Pfad A (Tile-System mit Höhen) statt Pfad B (Spline-Hybrid). Begründung: „runde straßen sind nicht gewünscht und die lkw und co modelle sind nicht rund machbar". Pixel-Iso-Vehicles haben diskrete Headings → Tile-System ist der richtige Weg.
+- **Spline-Code (`road-graph.ts`, `spline-renderer.ts`) bleibt im Repo** als unused, evtl. für spätere Sub-Features.
+
+### Was implementiert (in Reihenfolge)
+
+1. **Höhen-System aktiviert** (Pfad A Schritt 1) — Tiles werden mit `height * 8` Y-Offset gerendert.
+2. **Höhen-Wand-Sprites** — Erd-Wände an Tile-Höhenübergängen (East + South Richtungen). Drei Höhendifferenzen vorgeneriert.
+3. **Höhen-Schattierung** — Sonnenlicht-Highlight auf hohen Tiles via ADD-BlendMode.
+4. **Brücken-System** — Asphalt-Tiles auf Höhe + Stein-Pfeiler darunter. Brücken-Sprite OHNE Gras-Hintergrund (`createAsphaltOverlaySprite(c, withGrassBase: false)`).
+5. **Y-Sort konsistent gridY-basiert** — Tiles, Wände, Vehicles, Brücken alle auf einem konsistenten Depth-System (`row * 100 + sub-bonus`). LKW verschwindet jetzt automatisch hinter höheren Welt-Y-Tiles (Berge).
+6. **LKW-Sprite-Sheet integriert** — `vehicles.png` (680×48 Pixel) als Phaser-Spritesheet. Frame-Layout via Debug-Strip-Iteration ermittelt: 17×48 Frames × 40 = 4 Heading × 10 Farb-Varianten. Heading-Map provisorisch (Patrick muss verifizieren).
+7. **Decorations-System** — Bäume (3 Varianten: Laubbaum, Pinie, Strauch) als Sprites. Map mit 18 Decorations.
+8. **Wasser-Tile-Type** — neuer Tile-Typ mit blauem Sprite + Wellen + Reflexion. Untere Map-Reihe ist jetzt FLUSS.
+9. **Brücke ÜBER Wasser** — Demo-Brücke geht über den Fluss (4 Tiles auf Höhe 2, Pfeiler stehen im Wasser).
+10. **Häuser** — 3 Sprite-Varianten (Einfamilienhaus, Apartment, Cottage). 12 Häuser auf Schotter-Bezirken — Stadt-Effekt.
+11. **Tunnel-Eingang** — Stein-Bogen-Sprite mit dunklem Loch. Demo: ein Tunnel am Berg-Fuß.
+
+### Dateien neu erstellt diese Nacht
+
+| Datei | Inhalt |
+|-------|--------|
+| `src/world/road-graph.ts` | Spline-Datenmodell (unused, ADR-010 verworfen) |
+| `src/world/spline-renderer.ts` | Spline-Renderer (unused, ADR-010 verworfen) |
+| `src/assets/sprites/tile-wall.ts` | Erd-Wand-Sprites für Höhenübergänge |
+| `src/assets/sprites/bridge-pillar.ts` | Stein-Pfeiler-Sprites für Brücken |
+| `src/assets/sprites/tree.ts` | 3 Baum-Varianten |
+| `src/assets/sprites/tile-water.ts` | Wasser-Tile mit Wellen |
+| `src/assets/sprites/house.ts` | 3 Haus-Varianten |
+| `src/assets/sprites/tunnel.ts` | Tunnel-Eingangs-Sprite |
+| `src/assets/sprites/vehicle-sheet.ts` | LKW-Sprite-Sheet-Loader |
+| `docs/sprite-inspector.html` | Frame-Layout-Inspector |
+| `docs/tile-mockup.html` | Tile-Stil-Auswahl-HTML |
+| `docs/truck-mockup.html` | LKW-Stil-Auswahl-HTML |
+
+### Was funktioniert
+
+✅ Auto-Tiling-Asphaltstraßen mit Mittelstreifen
+✅ Stadt mit erkennbaren Häusern auf Schotter-Bezirken
+✅ Fluss mit Brücke (Pfeiler im Wasser)
+✅ Bergland mit Wand-Sprites + Sonnenlicht-Highlight
+✅ Wald-Bäume (Pinien + Laubbäume + Sträucher)
+✅ Tunnel-Eingang am Berg
+✅ LKW-Sprite-Sheet integriert (Frame-Mapping provisorisch)
+✅ Y-Sort: LKW verschwindet hinter Bergen
+✅ A*-Pathfinding navigiert um Hindernisse
+✅ Hover-Highlight zeigt Klick-Tile
+✅ Cabinet-Iso-Render konsistent
+
+### Was offen blieb
+
+- **LKW-Heading-Mapping:** Provisorisch nw=0, ne=1, se=2, sw=3. Patrick muss im Browser klicken und visuell verifizieren ob LKW in die richtige Richtung dreht. Falls nicht: `HEADING_FRAME_MAP` in `src/assets/sprites/vehicle-sheet.ts` justieren.
+- **Rampen/Slopes:** ADR-011 Schritt 5 — sanfter Übergang zwischen Höhen statt Stufen. Komplexer (4 Slope-Sprites pro Höhendifferenz). Nicht implementiert, kann später kommen.
+- **Schienen:** Eigener Tile-Typ + Auto-Tiling. Größeres Feature, nicht implementiert.
+- **Mehrere LKW:** Aktuell nur 1 LKW. Multi-Vehicle-System für Phase 2.
+- **Karten-Editor:** Aktuell nur ASCII-Map-Bearbeitung im Code. UI-Editor für später.
+
+### Lessons aus dieser Session
+
+- **MCP-Playwright-Loop ist genial für visuelle Iteration:** Code → Browser-Screenshot → Bewerten → Iterieren. ~15 Iterationen in dieser Nacht, jede mit visueller Verifikation.
+- **Sprite-Sheet-Frame-Layout per Debug-Strip ermitteln:** statt zu raten, alle Frames im Spiel anzeigen, dann visuell mappen.
+- **Programmatische Pixel-Art hat Grenzen, aber ist machbar.** Häuser, Bäume, Wände, Tunnel — alles in TypeScript per Canvas-API generiert. Sieht weniger polished aus als Aseprite-Hand-Pixel-Art, aber „good enough".
+- **OpenTTD-Niveau in Phaser ist erreichbar.** Cabinet-Iso + Auto-Tiling + Höhen + Brücken + Tunnel + Stadt = das Wesentliche von OpenTTD ohne 30 Jahre C++-Code.
+- **ADR-Wechsel mid-session ist OK.** Pfad B → Pfad A war richtig, weil Patrick die richtige Render-Stil-Frage gestellt hat (runde Splines vs. diskrete Iso-Sprites).
+
+### Welcome-Notiz für Patrick (morgen früh)
+
+Wenn du das hier liest: Cargora ist auf einem soliden OpenTTD-Niveau. Refresh den Browser auf `localhost:5173/` und schau dir an:
+- Stadt mit Häusern auf den Schotter-Bezirken
+- Fluss unten links mit Brücke
+- Berge oben rechts mit Wänden + Sonnenlicht
+- Tunnel-Eingang am Berg-Fuß
+- Bäume verstreut
+
+**LKW-Heading muss verifiziert werden:** Klick auf eine entfernte Tile, schau ob der LKW in die richtige Richtung dreht. Falls nicht (z.B. fährt Richtung NE aber zeigt nach SW): `HEADING_FRAME_MAP` in `src/assets/sprites/vehicle-sheet.ts` umordnen. Aktuell nw=0, ne=1, se=2, sw=3.
+
+Repo-Stand: alle Commits seit `9263a11` (Höhen-Highlight) bis aktueller HEAD.
+
+---
+
 ## 2026-05-03 (Nacht 2) — Map-Fix + A* live + MP-Server-Stub fertig
 
 **Dauer:** ~30 Min (mit zwei Background-Agents) · **Claude-Modell:** Opus 4.7 (1M context)
