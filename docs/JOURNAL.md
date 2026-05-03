@@ -79,15 +79,24 @@ Patrick ging ins Bett mit der Aufgabe: „arbeite die Nacht durch, bis das Stra�
 ### Welcome-Notiz für Patrick (morgen früh)
 
 Wenn du das hier liest: Cargora ist auf einem soliden OpenTTD-Niveau. Refresh den Browser auf `localhost:5173/` und schau dir an:
+- **Auto-Drive aktiv:** LKW fährt automatisch zwischen zufälligen Asphalt-Tiles. Du musst nicht klicken — die Welt wirkt sofort lebendig.
 - Stadt mit Häusern auf den Schotter-Bezirken
-- Fluss unten links mit Brücke
-- Berge oben rechts mit Wänden + Sonnenlicht
+- Fluss unten links mit Brücke (Pfeiler im Wasser)
+- Berge oben rechts mit Erd-Wänden + warmem Sonnenlicht-Highlight
 - Tunnel-Eingang am Berg-Fuß
-- Bäume verstreut
+- Bäume und Sträucher verstreut
 
-**LKW-Heading muss verifiziert werden:** Klick auf eine entfernte Tile, schau ob der LKW in die richtige Richtung dreht. Falls nicht (z.B. fährt Richtung NE aber zeigt nach SW): `HEADING_FRAME_MAP` in `src/assets/sprites/vehicle-sheet.ts` umordnen. Aktuell nw=0, ne=1, se=2, sw=3.
+**LKW-Heading muss verifiziert werden:** Schau dem LKW zu, ob er in die richtige Richtung dreht beim Fahren. Falls die Heading-Sprites verschoben sind: `HEADING_FRAME_MAP` in `src/assets/sprites/vehicle-sheet.ts` umordnen. Aktuell nw=0, ne=1, se=2, sw=3.
 
-Repo-Stand: alle Commits seit `9263a11` (Höhen-Highlight) bis aktueller HEAD.
+**Auto-Drive abschalten:** Falls du selbst klicken willst, in `CabinetIsoScene.ts` `private autoMode = true` auf `false` setzen.
+
+**Was sicher noch fehlt zu OpenTTD-Niveau:**
+- Rampen statt Stufen zwischen Höhen
+- Schienen-System
+- Mehrere Vehicle-Typen
+- Karten-Editor
+
+**Repo-Stand bei Sunset:** alle Commits seit `9263a11` (Höhen-Highlight) bis HEAD.
 
 ---
 
