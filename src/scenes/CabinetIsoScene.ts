@@ -18,6 +18,8 @@ import {
   createSchotterTileSprite,
   createFeldwegTileSprite,
   createAsphaltOverlaySprite,
+  createRailOverlaySprite,
+  parseRailConnectionsKey,
   createEastWallSprite,
   createSouthWallSprite,
   createBridgePillarSprite,
@@ -65,6 +67,9 @@ const ORIGIN_Y = 350 - ((MAP_W - 1) + (MAP_H - 1)) * (TILE_H / 4);
 function asphaltKey(connKey: string): string {
   return `sprite-asphalt-${connKey}`;
 }
+function railKey(connKey: string): string {
+  return `sprite-rail-${connKey}`;
+}
 
 function gridToScreen(gx: number, gy: number): { x: number; y: number } {
   return {
@@ -107,6 +112,16 @@ function getAsphaltConnectionsKey(map: TileType[][], x: number, y: number): stri
   const E = isAsphalt(x + 1, y);
   const S = isAsphalt(x, y + 1);
   const W = isAsphalt(x - 1, y);
+  return `${N ? '1' : '0'}${E ? '1' : '0'}${S ? '1' : '0'}${W ? '1' : '0'}`;
+}
+
+function getRailConnectionsKey(map: TileType[][], x: number, y: number): string {
+  const isRail = (xx: number, yy: number): boolean =>
+    xx >= 0 && yy >= 0 && xx < MAP_W && yy < MAP_H && map[yy][xx] === 'schiene';
+  const N = isRail(x, y - 1);
+  const E = isRail(x + 1, y);
+  const S = isRail(x, y + 1);
+  const W = isRail(x - 1, y);
   return `${N ? '1' : '0'}${E ? '1' : '0'}${S ? '1' : '0'}${W ? '1' : '0'}`;
 }
 
@@ -163,6 +178,9 @@ export class CabinetIsoScene extends Phaser.Scene {
         if (tile === 'asphalt') {
           const connKey = getAsphaltConnectionsKey(this.map, x, y);
           textureKey = asphaltKey(connKey);
+        } else if (tile === 'schiene') {
+          const connKey = getRailConnectionsKey(this.map, x, y);
+          textureKey = railKey(connKey);
         } else if (tile === 'gras') {
           textureKey = SPRITE_KEYS.tileGrass;
         } else if (tile === 'schotter') {
@@ -371,6 +389,11 @@ export class CabinetIsoScene extends Phaser.Scene {
       const bKey = bridgeAsphaltKey(key);
       if (!tex.exists(bKey)) {
         tex.addCanvas(bKey, createAsphaltOverlaySprite(parseConnectionsKey(key), false));
+      }
+      // Schienen-Auto-Tile-Variante
+      const rKey = railKey(key);
+      if (!tex.exists(rKey)) {
+        tex.addCanvas(rKey, createRailOverlaySprite(parseRailConnectionsKey(key)));
       }
     }
 

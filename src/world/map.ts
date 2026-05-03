@@ -11,6 +11,7 @@ export const TileType = {
   Feldweg: 'feldweg',
   Gras: 'gras',
   Wasser: 'wasser',
+  Schiene: 'schiene',
 } as const;
 export type TileType = (typeof TileType)[keyof typeof TileType];
 
@@ -45,6 +46,7 @@ export const TILE_INFO: Record<TileType, TileInfo> = {
   feldweg:  { name: 'Feldweg',  color: 0xa68a52, edgeColor: 0x866a32, speedMod: 0.30 },
   gras:     { name: 'Gras',     color: 0x3a5a3a, edgeColor: 0x1e3a1e, speedMod: 0    },
   wasser:   { name: 'Wasser',   color: 0x3a5a8e, edgeColor: 0x2a4a7e, speedMod: 0    },
+  schiene:  { name: 'Schiene',  color: 0x5a4838, edgeColor: 0x3a2818, speedMod: 0    },
 };
 
 const ASCII_TO_TILE: Record<string, TileType> = {
@@ -53,6 +55,7 @@ const ASCII_TO_TILE: Record<string, TileType> = {
   f: 'feldweg',
   '.': 'gras',
   '~': 'wasser',
+  'R': 'schiene',
 };
 
 // "Stadt-Block"-Layout — schmale Asphalt-Straßen (2 Tiles breit) bilden ein Straßennetz,
@@ -60,7 +63,7 @@ const ASCII_TO_TILE: Record<string, TileType> = {
 // Feldweg ist ein abgelegener Nebenpfad, Gras ist Map-Hintergrund.
 // Map ist 18×14 → passt in den Game-Canvas, kein Overflow rechts.
 const MAP_ASCII: string[] = [
-  '..................', // 0  Gras-Rand
+  '..RRRRRRRRRRRRRR..', // 0  SCHIENEN oben (West-Ost)
   '..................', // 1
   '..AAAAAAAAAAAAAA..', // 2  Hauptstraße (West-Ost) oben
   '..AAAAAAAAAAAAAA..', // 3

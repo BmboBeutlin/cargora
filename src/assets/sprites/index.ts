@@ -19,6 +19,12 @@ export {
   parseConnectionsKey,
   ALL_CONNECTION_KEYS,
 } from './asphalt-overlay.ts';
+export {
+  createRailOverlaySprite,
+  railConnectionsKey,
+  parseRailConnectionsKey,
+} from './rail-overlay.ts';
+export type { RailConnections } from './rail-overlay.ts';
 export type { Connections } from './asphalt-overlay.ts';
 export { createGrassTileSprite } from './tile-grass.ts';
 export { createSchotterTileSprite } from './tile-schotter.ts';
@@ -46,6 +52,7 @@ export const SPRITE_KEYS = {
   tileSchotter: 'sprite-tile-schotter',
   tileFeldweg: 'sprite-tile-feldweg',
   tileWasser: 'sprite-tile-wasser',
+  tileSchiene: 'sprite-tile-schiene',
   warehouse: 'sprite-warehouse',
   tree: 'sprite-tree',
   pine: 'sprite-pine',
