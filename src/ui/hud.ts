@@ -33,12 +33,13 @@ export function renderHud(data: HudData): void {
        </div>`
     : '';
   el.innerHTML = `
-    <div><b>CARGORA</b> · Stunde-1-Prototyp</div>
-    <div style="margin-top:4px;color:#7a8494;font-size:0.7rem">Modus: ${data.mode}</div>
-    <div style="color:#7a8494;font-size:0.7rem">LKW auf: ${info.name}</div>
-    <div style="color:#7a8494;font-size:0.7rem">Speed-Modifier: ${speedPct}%</div>
+    <div><b>CARGORA</b> · Welcome Patrick 🚛</div>
+    <div style="margin-top:4px;color:#7a8494;font-size:0.7rem">5 LKW · 6 Wolken · 1 Schiff · 1 Fabrik</div>
+    <div style="color:#7a8494;font-size:0.7rem">Map: Strassen + Schienen + Bruecken + Tunnel</div>
+    <div style="margin-top:6px;color:#7a8494;font-size:0.7rem">Haupt-LKW auf: ${info.name} (Speed ${speedPct}%)</div>
     <div style="color:#7a8494;font-size:0.7rem">Position: (${data.position.x}, ${data.position.y})</div>
-    <div style="margin-top:8px;color:#3a424e;font-size:0.65rem">Klick: fahren · Scroll: Zoom</div>
+    <div style="margin-top:8px;color:#3a424e;font-size:0.65rem">${data.mode}</div>
+    <div style="color:#3a424e;font-size:0.65rem">Klick: fahren · Scroll: Zoom</div>
     ${hoverBlock}
     ${flashLine}${overrideLine}
   `;

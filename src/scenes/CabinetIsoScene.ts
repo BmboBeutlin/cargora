@@ -35,6 +35,7 @@ import {
   createCloudMediumSprite,
   createCloudSmallSprite,
   createFactorySprite,
+  createBoatSprite,
   parseConnectionsKey,
   ALL_CONNECTION_KEYS,
   SPRITE_KEYS,
@@ -262,6 +263,21 @@ export class CabinetIsoScene extends Phaser.Scene {
       factory.setDepth(factoryPos.y * DEPTH_PER_ROW + DEPTH_VEHICLE - 5);
     }
 
+    // Boot auf dem Fluss — animiert von links nach rechts ziehen
+    {
+      const startScreen = gridToScreen(2, 13);
+      const boat = this.add.image(startScreen.x - 50, startScreen.y - 4, SPRITE_KEYS.boat);
+      boat.setDepth(13 * DEPTH_PER_ROW + DEPTH_VEHICLE - 10);
+      this.tweens.add({
+        targets: boat,
+        x: startScreen.x + 700,
+        duration: 18000,
+        ease: 'Linear',
+        repeat: -1,
+        onRepeat: () => { boat.x = startScreen.x - 100; },
+      });
+    }
+
     // Wolken am Himmel — animiert über die Karte ziehen
     const cloudKeys = [SPRITE_KEYS.cloudLarge, SPRITE_KEYS.cloudMedium, SPRITE_KEYS.cloudSmall];
     for (let i = 0; i < 6; i++) {
@@ -457,6 +473,7 @@ export class CabinetIsoScene extends Phaser.Scene {
     if (!tex.exists(SPRITE_KEYS.cloudMedium)) tex.addCanvas(SPRITE_KEYS.cloudMedium, createCloudMediumSprite());
     if (!tex.exists(SPRITE_KEYS.cloudSmall)) tex.addCanvas(SPRITE_KEYS.cloudSmall, createCloudSmallSprite());
     if (!tex.exists(SPRITE_KEYS.factory)) tex.addCanvas(SPRITE_KEYS.factory, createFactorySprite());
+    if (!tex.exists(SPRITE_KEYS.boat)) tex.addCanvas(SPRITE_KEYS.boat, createBoatSprite());
 
     // Default-LKW (rot via createTruckSpriteSet) als Haupt-Truck
     const truckSet = createTruckSpriteSet();
