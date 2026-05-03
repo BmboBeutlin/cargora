@@ -1,137 +1,199 @@
 # Cargora — Game Design Document
 
-> **Stand:** 2026-05-03 (Initial-Vision)
-> **Status:** WIP — Kern-Vision dokumentiert, Mechanik-Details werden iterativ ergänzt.
+> **Stand:** 2026-05-03 (V2 — nach Patrick-Survey)
+> **Status:** Vision konsolidiert, 2 Punkte zur Perspektive + Era-Range noch offen (siehe `design-survey-v2.html`)
 
 ---
 
 ## Vision in einem Satz
 
-Du verwaltest eine Logistik-Firma in einer simulierten Welt mit echten Märkten — jeder LKW, jeder Reifen, jeder Flughafen, jede Fabrik ist konfigurierbar und greift in echte Wechselwirkungen ein.
+Du baust ein Transport-Imperium auf, das mit Pferdekarren im Mittelalter beginnt und sich über Jahrhunderte zu einem modernen Logistik-Konzern entwickelt — gemeinsam mit Freunden in einer fiktiven Welt mit echten Märkten, echten Wechselwirkungen und echter Konkurrenz.
 
 ---
 
-## Inspiration
+## Konsolidierte Vision (aus Survey-V1, 2026-05-03)
 
-- **OpenTTD** — Logistik-Tycoon-Klassiker, aber zu oberflächlich
-- **Factorio** — Tiefe in Warenketten, Belt-Logik
-- **Mini Motorways / Mini Metro** — klare Visual-Sprache, Logistik als Puzzle
-- **Cities: Skylines** — Städtesimulation als integrales Element
-- **SimuTrans Extended** — modulare Fahrzeuge mit echten Werten
+### A. Setting
+
+| Aspekt | Entscheidung | Notiz |
+|--------|--------------|-------|
+| **Welt** | Fiktive Welt | Eigene Karten, prozedural generierbar oder handgebaut. Keine echten Städtenamen. |
+| **Tech-Niveau** | **Era-Progression** | Start: **Mittelalter mit Pferdekarren**. Tech-Tree wächst durch Eras: Mittelalter → Industrialisierung → Moderne → leichter Sci-Fi-Twist. (Patrick-Anmerkung: „beginnend aber mit pferden am liebsten im mittelalter oderso") |
+| **Karten-Größe** | Mittel ~600×600 | Platz für 2-4 Spieler-Firmen, mehrere Städte. Kampagne über mehrere Sitzungen. |
+
+### B. Multiplayer
+
+| Aspekt | Entscheidung |
+|--------|--------------|
+| **Konkurrenz** | Allianzen + Verträge erlaubt. Spieler können Kartelle bilden, Lieferabkommen schließen. |
+| **Sabotage-Härte** | **Volle Bandbreite:** wirtschaftlich + Spionage + direkte Sabotage. (Patrick: „spionage und co aber auch dazu") |
+| **Sitzungs-Format** | Kampagne über Wochen mit Save & Continue. Welt persistiert. |
+
+### C. Wirtschaft
+
+| Aspekt | Entscheidung |
+|--------|--------------|
+| **Modell** | Cash-Flow + Investoren/Aktien/Kredite. Spieler kann Kapital aufnehmen, Firma an die Börse bringen, Konkurrenten übernehmen. |
+
+### D. Visual
+
+| Aspekt | Entscheidung | Status |
+|--------|--------------|--------|
+| **Pixel-Auflösung** | 48×48 px pro Sprite | Bestätigt |
+| **Stadt-Stil** | Erkennbare Gebäudetypen (Häuser, Fabriken, Kirchen, Wohnblocks) | Bestätigt |
+| **Terrain-Perspektive** | **3/4-Iso ODER „vorne/oben" — KLÄRUNG OFFEN** | Patrick: „entweder 3/4 iso, oder 'vorne/oben' also keine klassische draufsicht" → Folge-Survey nötig |
+
+---
+
+## ⚠ Offene Klärungen (kritisch vor Sprite-Generation)
+
+### Klärung 1: Perspektive (siehe `design-survey-v2.html`)
+
+Patricks „vorne/oben" könnte mehrere Dinge bedeuten:
+- **3/4-Iso wie OpenTTD/SimCity 2000** — Tiles als Rauten, Höhen als Stufen
+- **Cabinet-Iso wie RollerCoaster Tycoon** — flacherer Winkel, mehr Vorderseite
+- **2.5D-Aufsicht wie Theme Hospital/Anno 1404** — schräge Drauf­sicht mit Schatten
+- **High-Angle Side-View wie Tropico/Banished** — fast seitlich, leicht von oben
+
+→ Mit Bild-Vergleichen klären in **Folge-Survey**.
+
+### Klärung 2: Era-Range
+
+Patricks „Mittelalter beginnend → leichter Sci-Fi" — wie weit reicht der Tech-Tree?
+- Endet mit Heute (LKW, Container)?
+- Endet mit Near-Future (E-LKW, Drohnen)?
+- Endet mit echtem Sci-Fi (Magnet-Bahnen, Anti-Grav)?
+
+→ Auch in **Folge-Survey**.
 
 ---
 
 ## Kern-Pillars (was Cargora ausmacht)
 
-### 1. Modulare Tiefe statt Breite
+### 1. Era-Progression als zentrale Belohnungs-Loop (NEU)
 
-Wenige Systeme — aber jedes mit echter Simulationstiefe. Kein „Truck { speed: 80, capacity: 20 }". Stattdessen:
+Spieler beginnen mit Pferdewagen auf Trampelpfaden. Über Wochen Spielzeit forscht und investiert man sich durch:
 
-```
-Truck {
-  chassis, tires, engine, cargo_bay, upgrades[]
-}
-```
+- **Era 1 — Mittelalter:** Pferdewagen, Trampelpfade, kleine Marktplätze, Burgen als Zentrum.
+- **Era 2 — Frühe Neuzeit:** Postkutschen, Schotterstraßen, erste Handelshäuser, Häfen.
+- **Era 3 — Industrialisierung:** Dampfeisenbahn, Kanäle, Fabriken, erste Kohlezüge.
+- **Era 4 — Moderne:** LKW, Container, Asphalt-Autobahnen, Flughäfen, Container-Terminals.
+- **Era 5 — Leichter Sci-Fi:** E-LKW, Cargo-Drohnen, Magnet-Bahnen, automatisierte Häfen.
 
-Wechselwirkungen statt linearen Werte. Reifen × Straßentyp × Ladung × Wetter = 4D-Entscheidungsraum.
+Jede Era unlocked neue Modalitäten + neue Cargo-Typen + neue Wettbewerbsdynamiken.
 
-### 2. Echter Markt statt Festpreise
+### 2. Modulare Tiefe statt Breite
 
-Preise entstehen durch Angebot/Nachfrage zwischen Spielern und NPC-Konsumenten. Mehr Konkurrenz = niedrigere Preise. Knappheit = Profit.
+Wenige Systeme — aber jedes mit echter Simulationstiefe. Pferdewagen haben:
+- **Pferderasse** (Last vs. Geschwindigkeit)
+- **Kutschen-Typ** (Wagen, Karren, Postkutsche)
+- **Hufeisen** (Material, Verschleiß)
+- **Beladung** (Volumen, Verderblichkeit)
 
-### 3. Multiplayer von Anfang an
+LKWs später analog mit Reifen + Motor + Aufbau. **Gleiches Prinzip durch alle Eras.**
 
-Nicht „Singleplayer mit MP-Bolt-on" — sondern MP-First. 2–8 Spieler, gemeinsame Welt, Handelsverträge, Konkurrenz, Kooperation.
+### 3. Echter Markt statt Festpreise
 
-### 4. Städte als lebende Akteure
+Preise entstehen durch Angebot/Nachfrage zwischen Spielern und NPC-Konsumenten. Knappheit treibt Preise. Konkurrenz drückt sie.
 
-Städte sind nicht nur Cargo-Quellen/-Senken. Sie wachsen, ihre Bedürfnisse ändern sich, Bevölkerungs-Demografie verschiebt Nachfrage. Stadtinfrastruktur (gute Anbindung) zieht Bevölkerung an.
+### 4. Multiplayer von Anfang an
 
-### 5. Konfigurierbare Infrastruktur
+Nicht „Singleplayer mit MP-Bolt-on" — MP-First. 2-8 Spieler, gemeinsame Welt, Handelsverträge, Konkurrenz, Allianzen, Spionage, direkte Sabotage.
 
-Du baust nicht „einen Flughafen", sondern einen Flughafen mit:
-- Frachtterminals mit Klimazonen (Tiefkühl/Kühl/Ambient)
-- Runway-Längen (limitiert Flugzeugtypen)
-- Zollstationen (für Internationale Cargo)
-- Energie-Anschluss
+### 5. Städte als lebende Akteure
 
-Gleiches Prinzip für Bahnhöfe, Speditionen, Häfen.
+Städte wachsen, ihre Bedürfnisse ändern sich mit der Era (Mittelalter: Getreide+Holz, Industrialisierung: Kohle+Stahl, Moderne: Elektronik+Lebensmittel). Stadtinfrastruktur (gute Anbindung) zieht Bevölkerung.
 
-### 6. Forschungsbaum mit Spionage-Möglichkeit
+### 6. Konfigurierbare Infrastruktur
 
-Technologien sind nicht „gekauft = freigeschaltet". Sie werden erforscht und können von Konkurrenten kopiert werden, wenn sie Zugang zu deinen Anlagen bekommen. Macht Fortschritt zum MP-Element.
+In jeder Era anders, aber gleicher Grundgedanke:
+- **Mittelalter:** Marktplatz mit konfigurierbarer Größe + Wachposten
+- **Industrialisierung:** Bahnhof mit Anzahl Gleise + Wartungshallen
+- **Moderne:** Flughafen mit Frachtterminals (Kühl/Tiefkühl/Ambient), Runway-Längen
 
----
+### 7. Forschung mit Spionage-Möglichkeit
 
-## Modalitäten
-
-| Modalität | Phase | Tiefe |
-|-----------|-------|-------|
-| **LKW + Straßen** | Phase 1 | Reifen, Motor, Aufbau, Straßentypen, Wetter, Verschleiß |
-| **Schiene** | Phase 3 | Lokomotiven + Wagen-Sets, Signalsystem, Spurweiten |
-| **Luft** | Phase 3 oder 4 | Flugzeugtypen, Flughafen-Konfig, Klima-Cargo |
-| **Schiff** | Phase 5+ | Frachtschiff, Häfen, Containerlogistik |
+Technologien werden erforscht und können von Konkurrenten kopiert werden, wenn sie Zugang zu deinen Anlagen bekommen. Spionage als MP-Element. Auch direkte Sabotage möglich.
 
 ---
 
-## Beispiel: Eine konkrete Tiefe-Mechanik
+## Modalitäten pro Era
 
-Du transportierst **Lachs aus Norwegen nach München**:
+| Era | Modalitäten | Tiefe-Beispiele |
+|-----|-------------|-----------------|
+| **Mittelalter** | Pferdewagen, Boote (Fluss/Küste), Wanderhändler | Pferderasse, Kutschen-Typ, Wagen-Bauweise, Hufeisen-Verschleiß, Last-Verteilung |
+| **Frühe Neuzeit** | Postkutschen, Segelschiffe, erste Kanäle | Schiffsklassen, Segel-Konfiguration, Crew-Stärke |
+| **Industrialisierung** | Dampfeisenbahn, Dampfschiffe, Kanal-Schleppkähne | Lokomotive + Wagen-Sets, Spurweite, Signalsystem |
+| **Moderne** | LKW, Container-Bahn, Container-Schiff, Cargo-Flugzeug | Reifen, Motor, Aufbau, Klima, Routenplanung, Treibstoff |
+| **Sci-Fi-Twist** | E-LKW, Cargo-Drohnen, Magnet-Bahnen, evtl. autonome Konvois | Batterien, KI-Routing, Lade-Infrastruktur |
 
-1. **Norwegen:** Fischfabrik produziert Frischfisch — verderblich, braucht Kühlkette.
-2. **Hafen NO:** Container in Kühl-Container laden — kostet Strom (eigenes Kraftwerk?).
-3. **Schiff nach Hamburg:** Container-Schiff mit Kühlanlage — Treibstoff, Wartung.
-4. **Bahn HH→München:** Spezial-Wagen mit Kühlung — falls keiner verfügbar, LKW auf Autobahn.
-5. **München-Lager:** Kühlhaus mit korrekter Temperatur — sonst Cargo verdirbt.
-6. **Verteilung in Stadt:** Kleine LKWs mit Kühl-Aufbau zu Restaurants/Supermärkten.
+---
 
-**Eine Kette = 5 Systeme greifen ineinander.** Wenn ein Glied fehlt → Cargo verdirbt → Geld verloren → Reputation sinkt.
+## Beispiel: Eine konkrete Tiefe-Mechanik durch Eras
+
+**Era 1 (Mittelalter):** Du transportierst Salz aus einer Mine zur Stadt.
+- Pferdewagen mit 2 Pferden, Holzfässer als Cargo.
+- Trampelpfad ist matschig im Regen → Wagen bleibt stecken.
+- Lösung: Investiere in Schotterweg-Bau-Forschung.
+
+**Era 3 (Industrialisierung):** Salz wird zur Industrie — du baust eine Schmalspurbahn.
+- Dampflok zieht 4 Kohlewagen + 6 Salzwagen.
+- Signalsystem verhindert Kollisionen.
+- Lösung: Doppelgleisige Strecke gegen Stau.
+
+**Era 4 (Moderne):** Salz ist Bulk-Cargo — du nutzt Container.
+- LKW-Konvoi zur Bahn-Umladestelle, Container-Zug, Container-Schiff zum Übersee-Markt.
+- Tiefkühl-Container nicht nötig (Salz ist robust).
+- Lösung: Optimiere Container-Umlauf und Lager-Just-in-Time.
+
+**Eine Cargo-Linie wächst über Eras mit, statt verworfen zu werden.** Das ist der Era-Progression-Reiz.
 
 ---
 
 ## Was Cargora NICHT ist
 
-- **Kein Open World/RPG** — keine Spieler-Avatare, keine Ego-Perspektive
-- **Kein Echtzeit-Kampfspiel** — Sabotage-Mechaniken sind subtil (Spionage, Übernahmen), keine Gewalt
-- **Kein Story-Spiel** — keine Cutscenes, keine Charaktere, keine Hauptquest
-- **Kein Mobile-Spiel** — Browser/Desktop, Maus+Tastatur
-- **Kein Pay2Win** — überhaupt kein kommerzielles Modell, nur Hobby-Projekt
+- Kein Open World/RPG — keine Spieler-Avatare
+- Kein Echtzeit-Kampfspiel — Sabotage ist ökonomisch/spionage/punktuell, kein Krieg
+- Kein Story-Spiel — keine Cutscenes, keine Hauptquest
+- Kein Mobile-Spiel — Browser/Desktop, Maus+Tastatur
+- Kein Pay2Win, kein kommerzielles Modell
 
 ---
 
 ## Spielerzahl & Sitzungs-Format
 
-- **Spielerzahl:** 2–8 (Phase 1: 2 für MVP, später skalieren)
-- **Sitzungslänge:** 30–120 Minuten pro Sitzung
-- **Persistenz:** Save & Continue über Tage/Wochen — eine Kampagne kann Wochen dauern
-- **Asynchron?** TBD — eventuell „Welt läuft weiter, du loggst dich ein, machst was, gehst raus"
+- **Spielerzahl:** 2-8 (Phase 1: 2 für MVP)
+- **Sitzungslänge:** 30-120 Minuten pro Sitzung
+- **Persistenz:** Save & Continue über Wochen — eine Kampagne kann Monate dauern
+- **Era-Übergang:** Zeit-Beschleunigung möglich, sodass eine Kampagne durch alle 5 Eras führt (Spieler entscheiden gemeinsam, wann beschleunigt wird)
 
 ---
 
-## Phasen-Plan (kurz, Details in `SCOPE.md` TBD)
+## Phasen-Plan (überarbeitet nach Survey)
 
 | Phase | Dauer | Ziel |
 |-------|-------|------|
-| **Phase 1 (MVP)** | Mon 1–3 | LKW + 4 Straßentypen, 2 Cargo-Typen, lokales Singleplayer + Basis-Multiplayer |
-| **Phase 2 (Tiefe)** | Mon 4–6 | Modulare Fahrzeuge (Reifen/Motor/Aufbau), Forschungsbaum, eine Warenkette |
-| **Phase 3 (Wirtschaft)** | Mon 7–9 | Echter Markt, Städte mit Bedarfsmodell, zweite Modalität |
-| **Phase 4 (Polish)** | Mon 10–12 | Wetter, Verschleiß-Mechaniken, Sound, UX, Save/Load, Spielbarkeit für Freunde |
-| **Phase 5+** | Mon 13+ | Dritte Modalität, Spionage, Karten-Editor, Mod-Support? |
+| **Phase 0 (jetzt)** | Tag 1 | Stunde-1-Prototyp ✅ + Doku-Struktur ✅ + GitHub-Repo ✅ + Survey ✅ |
+| **Phase 1 (MVP)** | Mon 1-3 | **NUR Era 1 (Mittelalter):** Pferdewagen + Trampelpfade + 2 Cargo-Typen + lokales Singleplayer + Basis-Multiplayer |
+| **Phase 2 (Era-Tiefe)** | Mon 4-6 | Modulare Pferdewagen (Pferd/Kutsche/Hufeisen), erste Forschung, eine Warenkette in Era 1 |
+| **Phase 3 (Era-Übergang)** | Mon 7-10 | **Era 2 (Frühe Neuzeit) freigeschaltet** — Tech-Forschung führt zur nächsten Era. Spieler erleben ersten Era-Switch. |
+| **Phase 4 (Wirtschaft)** | Mon 11-14 | Echter Markt zwischen Spielern, Investoren/Aktien-System, Städte mit Bedarfsmodell |
+| **Phase 5 (Era 3+)** | Mon 15-20 | Industrialisierung dazu (Dampfeisenbahn als zweite Modalität) |
+| **Phase 6+ (offene Skalierung)** | Mon 21+ | Era 4 (Moderne) + Era 5 (Sci-Fi). Sabotage/Spionage. Polish. |
+
+**Gesamt: ~20-24 Monate bis vollständige Era-Progression.** Das ist **deutlich mehr** als ursprünglich geplante 12 Monate — weil Era-Progression das Scope vervielfacht. Aber **jede Phase liefert ein spielbares Etwas**.
 
 ---
 
-## Offene Fragen (zu klären in Game-Design-Sessions)
+## Patrick-Anmerkung zur Survey
 
-- [ ] Karten-Größe? Realistische Geografie oder fiktive Welt?
-- [ ] Tech-Niveau: Heute, alternativ-Geschichte, Sci-Fi, Steampunk?
-- [ ] Wie alt werden Welten? (Eine Kampagne 1 Jahr Echtzeit oder kurze Sessions?)
-- [ ] Konfliktlösung MP: Reine Konkurrenz, Allianzen, formelle Verträge?
-- [ ] Wie krass ist Sabotage erlaubt? (Rein Spionage, oder auch direkter Schaden?)
-- [ ] Städte: Spieler darf Stadtwachstum beeinflussen, oder nur reagieren?
-- [ ] Wirtschaftsmodell: Reines Cash-Flow, oder Aktien/Investition/Kredit?
+> „Diese Art von Umfrage hat mir extrem gefallen. Beim nächsten Mal vielleicht noch mehrfach Auswahl"
+
+→ Notiert für zukünftige Surveys: **Multi-Select-Optionen** als Feature einbauen (nicht nur Radio-Buttons).
 
 ---
 
 ## Revisions-Notizen
 
-- **2026-05-03:** Initial-Version. Kern-Pillars festgelegt. Phasen-Plan grob skizziert. 7 offene Fragen markiert.
+- **2026-05-03 V1:** Initial-Version. Kern-Pillars festgelegt, Phasen grob.
+- **2026-05-03 V2:** Survey-Antworten von Patrick eingearbeitet. **Massiver Pivot:** Mittelalter-Start mit Era-Progression. Phasen-Plan komplett überarbeitet (12 → 20+ Monate). Zwei Klärungspunkte zu Perspektive + Era-Range bleiben offen, separate Folge-Survey.

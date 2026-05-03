@@ -19,6 +19,8 @@
 |-------|--------|
 | [`GAME_DESIGN.md`](GAME_DESIGN.md) | **Vision, Kern-Pillars, Mechaniken, Scope.** Was wird gebaut und warum. |
 | [`SCOPE.md`](SCOPE.md) | (TBD) Phasen-Plan: was ist in Phase 1, 2, 3, ... — und was explizit NICHT |
+| [`design-survey.html`](design-survey.html) | **V1-Survey** (10 Fragen, 2026-05-03 ausgefüllt). Visualisierungen + Multi-Choice. Standalone HTML — direkt im Browser öffnen. |
+| [`design-survey-v2.html`](design-survey-v2.html) | **V2-Survey** (3 Fragen — Perspektive, Eras, Era-Tempo). Multi-Select für Eras. Klärt offene Punkte aus V1. |
 
 ---
 
@@ -29,6 +31,7 @@
 | [`TECH_STACK.md`](TECH_STACK.md) | Tech-Entscheidungen + Begründungen. Phaser, TS, Vite, Colyseus. |
 | [`ARCHITECTURE.md`](ARCHITECTURE.md) | (TBD) Code-Struktur, Datenmodell, Module-Grenzen |
 | [`DECISIONS.md`](DECISIONS.md) | ADRs — chronologische Architekturentscheidungen mit Begründung |
+| [`STYLE_GUIDE.md`](STYLE_GUIDE.md) | Visual Style Guide: Pixel-Auflösung, Palette, Sprite-Konventionen |
 
 ---
 
@@ -37,7 +40,6 @@
 | Datei | Inhalt |
 |-------|--------|
 | [`JOURNAL.md`](JOURNAL.md) | **Session-Tagebuch.** Was wurde wann gebaut, was steht offen. |
-| [`STYLE_GUIDE.md`](STYLE_GUIDE.md) | (TBD) Pixel-Art-Konventionen, Farbpalette, UI-Patterns |
 
 ---
 

@@ -4,6 +4,66 @@
 
 ---
 
+## 2026-05-03 (Abend) — Survey V1 + Vision-Pivot zu Era-Progression
+
+**Dauer:** ~45 Min · **Claude-Modell:** Opus 4.7 (1M context)
+
+### Was gebaut
+
+- **Interaktive Design-Survey V1** (`docs/design-survey.html`) mit 10 Fragen, Visualisierungen, Auto-Save in localStorage
+- Patrick hat die Survey ausgefüllt — Antworten konsolidiert in `docs/GAME_DESIGN.md`
+- **Massiver Vision-Pivot**: Spiel beginnt jetzt im **Mittelalter mit Pferdekarren**, mit Era-Progression bis (potenziell) Sci-Fi
+- `docs/GAME_DESIGN.md` V2 geschrieben mit überarbeitetem Phasen-Plan (12 → 20-24 Monate)
+- `docs/STYLE_GUIDE.md` angelegt (Skelett mit bestätigten Pixel-Auflösung 48×48 + Stadt-Stil)
+- **Survey V2** (`docs/design-survey-v2.html`) für die zwei offenen Klärungen: Perspektive (4 Optionen mit SVG-Visualisierungen) + Era-Range (Multi-Select)
+- **3 neue ADRs** in `docs/DECISIONS.md`:
+  - ADR-004: Era-Progression als Kern-Mechanik
+  - ADR-005: Pixel-Auflösung 48×48 + erkennbare Gebäudetypen
+  - ADR-006: Sabotage volle Bandbreite (wirtschaftlich + Spionage + direkt)
+- `docs/INDEX.md` aktualisiert (Surveys + STYLE_GUIDE eingetragen)
+
+### Patricks Survey-V1-Antworten (kompakt)
+
+| Frage | Antwort |
+|-------|---------|
+| Setting | Fiktive Welt |
+| Tech-Niveau | Mittelalter-Start mit Era-Progression bis leichter Sci-Fi |
+| Karte | Mittel ~600×600 |
+| Multiplayer | Allianzen + Verträge |
+| Sabotage | Voll (Wirtschaft + Spionage + Direkt) |
+| Format | Save-&-Continue-Kampagnen über Wochen |
+| Wirtschaft | Cash-Flow + Investoren/Aktien/Kredite |
+| Pixel | 48×48 |
+| Stadt | Erkennbare Gebäudetypen |
+| Perspektive | OFFEN — V2-Survey nötig (3/4-Iso ODER „vorne/oben") |
+
+### Patricks Feedback zur Survey
+
+> „Diese Art von Umfrage hat mir extrem gefallen. Beim nächsten Mal vielleicht noch mehrfach Auswahl"
+
+→ Multi-Select in V2-Survey integriert (Frage 2: Era-Auswahl).
+
+### Offene Klärungen vor Sprite-Generation
+
+- [ ] **Perspektive** — V2-Survey, Frage 1 (4 visuelle Optionen)
+- [ ] **Era-Range** — V2-Survey, Frage 2 (Multi-Select)
+- [ ] **Era-Übergangs-Tempo** — V2-Survey, Frage 3
+
+### Nächste Session — Vorschläge
+
+1. **V2-Survey ausfüllen lassen** — Patrick öffnet `docs/design-survey-v2.html`, beantwortet 3 Fragen
+2. **Style-Guide finalisieren** mit Perspektive-Wahl
+3. **Erste Era-1-Sprites generieren** (Pferdewagen + Trampelpfad-Tile + Marktplatz-Gebäude)
+4. **Spiel-Code anpassen** — aus „LKW + Asphalt" wird „Pferdewagen + Trampelpfad", neue Tile-Map mit Era-1-Optik
+
+### Lessons aus dieser Session
+
+- **Vorgefertigte Survey schneller als Q&A im Chat.** Patrick hat in ~10 Min alle 10 Fragen beantwortet, mit visuellen Vergleichen wo nötig. Pattern für zukünftige Game-Design-Iterationen: Survey-First statt Endlos-Chat.
+- **Multi-Select-Feedback war wertvoll.** Patrick wollte Multi-Select — direkt in V2 eingebaut. Pattern: Survey-Feedback im nächsten Iteration aufnehmen, nicht erst „beim nächsten Spiel".
+- **Anmerkungen sind oft wichtiger als die Hauptauswahl.** Patrick hat „Tech-Niveau: Heute + Sci-Fi-Twist" gewählt, aber in den Anmerkungen „Mittelalter beginnend mit Pferden" geschrieben — was die Vision **fundamental** geändert hat. Anmerkungen niemals überlesen.
+
+---
+
 ## 2026-05-03 — Projekt-Bootstrap (Stunde-1-Prototyp)
 
 **Dauer:** ~1 Stunde · **Claude-Modell:** Opus 4.7 (1M context)

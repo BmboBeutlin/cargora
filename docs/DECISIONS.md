@@ -120,6 +120,106 @@ Konkret:
 
 ---
 
+---
+
+## ADR-004: Era-Progression als Kern-Mechanik (Pivot von „nur Moderne")
+
+**Datum:** 2026-05-03
+**Status:** Akzeptiert
+**Entscheider:** Patrick (via Survey V1 + Anmerkungen)
+
+### Kontext
+
+Initial-Vision (Stunde 1) war ein Logistik-Tycoon mit modernen LKW als Start. Survey V1 hat ergeben: Patrick will mit **Pferdekarren im Mittelalter** beginnen, mit Tech-Tree-Progression durch die Eras. Wörtlich: „beginnend aber mit pferden am liebsten im mittelalter oderso".
+
+### Optionen
+
+1. **Nur eine Era (Moderne)** — wie ursprünglich geplant. Schmaler Scope.
+2. **Era-Progression** — Spieler beginnen Mittelalter, forschen sich durch Eras hoch (wie Civilization).
+3. **Mehrere Welten in jeder Era** — getrennte Spiele pro Era, nicht progressiv.
+
+### Entscheidung
+
+**Option 2: Era-Progression als Kern-Mechanik.**
+
+### Begründung
+
+- Patricks explizite Vision (V1-Anmerkung)
+- Fügt langlebige Belohnungs-Loop hinzu — jede neue Era ist „neues Spiel im Spiel"
+- Passt zu Save-&-Continue-Kampagnen (auch Patrick-Wahl)
+- Nutzt Modulare-Tiefe-Pillar voll aus: Pferdekarren haben analoges System wie LKW (Pferd/Kutsche/Hufeisen ↔ Reifen/Motor/Aufbau)
+- Era-Übergänge sind eindeutige Spielzeit-Marker für Multiplayer-Sessions
+
+### Konsequenzen
+
+- **Scope vervielfacht sich.** Statt 12 Monate jetzt 20-24 Monate bis vollständige Era-Progression. (Phasen-Plan in `GAME_DESIGN.md` überarbeitet.)
+- **Phase 1 MVP ändert sich komplett** — statt LKW + Asphalt-Straßen jetzt Pferdewagen + Trampelpfade.
+- **Sprite-Pipeline pro Era nötig** — Era-spezifische Vehicles, Tiles, Buildings.
+- **Forschungsbaum wird Era-übergreifend** — statt linear nun mit Era-Verzweigungen.
+- **Tech-Stack-Auswirkung minimal** — Phaser/TS/Colyseus skalieren mit, nur Asset-Volume wächst.
+
+---
+
+## ADR-005: Pixel-Auflösung 48×48 + Stadt-Stil mit erkennbaren Gebäudetypen
+
+**Datum:** 2026-05-03
+**Status:** Akzeptiert
+**Entscheider:** Patrick (via Survey V1)
+
+### Kontext
+
+Initial-Style-Guide brauchte Konkretisierung. Survey V1 hat zwei Visual-Punkte bestätigt.
+
+### Entscheidung
+
+- **Pixel-Auflösung pro Sprite:** 48 × 48 px
+- **Stadt-Stil:** Erkennbare Gebäudetypen (Häuser, Fabriken, Kirchen, Wohnblocks)
+
+### Begründung
+
+- 48×48 erlaubt sichtbare Details (Räder, Fenster, Banner, Pferde-Mähne)
+- 48×48 ist Mittelweg zwischen Retro-Charme (16×16) und KI-Generation-Aufwand (64+)
+- Erkennbare Gebäudetypen → Cargo-Bedarfs-Profile pro Typ → tiefere Wirtschaft
+- Konsistent mit Era-Progression (Mittelalter-Burg ≠ Industrialisierung-Fabrik ≠ Moderne-Hochhaus)
+
+### Konsequenzen
+
+- Sprite-Generation muss in 48px arbeiten (oder höher, dann downscale)
+- Style-Guide-File `docs/STYLE_GUIDE.md` angelegt
+- Pro Era separate Sprite-Sets nötig
+- Tile-Größe Karte muss zu 48 passen — entweder 48×48 (Top-Down) oder 48×24 (Iso-Rauten)
+
+---
+
+## ADR-006: Sabotage volle Bandbreite (wirtschaftlich + Spionage + direkt)
+
+**Datum:** 2026-05-03
+**Status:** Akzeptiert
+**Entscheider:** Patrick (via Survey V1)
+
+### Kontext
+
+Multiplayer-Konfliktdynamik musste festgelegt werden.
+
+### Entscheidung
+
+**Volle Bandbreite erlauben.** Patrick hat „+ Direkte Sabotage" gewählt UND notiert: „spionage und co aber auch dazu". Alle drei Stufen erlaubt.
+
+### Begründung
+
+- Patrick hat es explizit gewählt
+- Hobby-Projekt mit Freunden — soziale Dynamik erträgt Drama (kein Reputations-Risiko wie bei kommerziellem Game)
+- Multi-Tier-System gibt Spielern Wahl: Pazifist spielt rein wirtschaftlich, Aggressor sabotiert
+- Direkte Sabotage muss kostspielig genug sein, dass sie strategisch ist (sonst kippt das Spiel)
+
+### Konsequenzen
+
+- **Komplexes Konflikt-Balancing** in Phase 4+ nötig
+- **Anti-Sabotage-Mechaniken** (Wachposten, Versicherungen, Reputation-System) müssen mit Sabotage zusammen designt werden
+- Möglicherweise „Pazifist-Modus" als Server-Setting für Gruppen, die das nicht wollen
+
+---
+
 ## Template für neue ADRs
 
 ```markdown
