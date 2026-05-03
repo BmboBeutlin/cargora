@@ -97,6 +97,16 @@ export type SlopeTile = {
   baseHeight: number; // niedrigere Seite
 };
 
+// Decoration: Baum/Strauch/anderes auf einer Tile
+export type Decoration = {
+  x: number;
+  y: number;
+  kind: 'tree' | 'pine' | 'bush';
+  // Sub-Position innerhalb des Tiles (0-1 für jitter)
+  offsetX?: number;
+  offsetY?: number;
+};
+
 export type WorldData = {
   width: number;
   height: number;
@@ -107,6 +117,7 @@ export type WorldData = {
   bridges: BridgeTile[];
   tunnels: TunnelTile[];
   slopes: SlopeTile[];
+  decorations: Decoration[];
 };
 
 export function buildWorld(): WorldData {
@@ -157,6 +168,32 @@ export function buildWorld(): WorldData {
     { x: 6, y: 0, direction: 'E', baseHeight: 0 },
   ];
 
+  // Decoration: Bäume verstreut auf Gras-Flächen, Pinien an den Bergen
+  const decorations: Decoration[] = [
+    // Pinien-Wald oben links
+    { x: 2, y: 0, kind: 'pine', offsetX: 0.2 },
+    { x: 3, y: 0, kind: 'pine', offsetX: -0.1 },
+    { x: 4, y: 0, kind: 'tree' },
+    { x: 4, y: 1, kind: 'bush', offsetX: 0.3 },
+    // Bäume um den Berg oben (zwischen Berg und Asphalt)
+    { x: 13, y: 0, kind: 'pine' },
+    { x: 13, y: 1, kind: 'tree', offsetX: 0.2 },
+    { x: 14, y: 1, kind: 'tree' },
+    { x: 15, y: 1, kind: 'pine', offsetX: -0.1 },
+    // Bäume unten
+    { x: 1, y: 13, kind: 'pine' },
+    { x: 2, y: 13, kind: 'tree', offsetX: 0.3 },
+    { x: 3, y: 13, kind: 'bush' },
+    { x: 14, y: 13, kind: 'pine', offsetX: 0.1 },
+    { x: 15, y: 13, kind: 'tree' },
+    { x: 16, y: 13, kind: 'pine', offsetX: -0.2 },
+    // Sträucher zwischen Asphalt-Bezirken
+    { x: 4, y: 6, kind: 'bush', offsetX: 0.2 },
+    { x: 13, y: 6, kind: 'bush' },
+    { x: 4, y: 11, kind: 'bush', offsetX: -0.1 },
+    { x: 13, y: 11, kind: 'bush', offsetX: 0.2 },
+  ];
+
   return {
     width: MAP_W,
     height: MAP_H,
@@ -167,6 +204,7 @@ export function buildWorld(): WorldData {
     bridges,
     tunnels,
     slopes,
+    decorations,
   };
 }
 

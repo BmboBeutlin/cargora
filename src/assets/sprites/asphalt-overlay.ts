@@ -127,14 +127,14 @@ function drawCenterPad(ctx: CanvasRenderingContext2D): void {
   }
 }
 
-export function createAsphaltOverlaySprite(c: Connections): HTMLCanvasElement {
+export function createAsphaltOverlaySprite(c: Connections, withGrassBase: boolean = true): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = 64;
   canvas.height = 32;
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
 
-  drawGrassBase(ctx);
+  if (withGrassBase) drawGrassBase(ctx);
   drawCenterPad(ctx);
 
   // Welt-Direction → Bildschirm-Slope:

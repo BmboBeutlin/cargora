@@ -5,12 +5,11 @@ import {
   START_TILE,
   buildWorld,
 } from '../world/map';
-import type { TileType, BridgeTile } from '../world/map';
+import type { TileType, BridgeTile, Decoration } from '../world/map';
 import { findPath } from '../world/pathfinding';
 import type { Point } from '../world/pathfinding';
 import { renderHud, flashHud } from '../ui/hud';
 import {
-  createTruckSpriteSet,
   createGrassTileSprite,
   createSchotterTileSprite,
   createFeldwegTileSprite,
@@ -18,12 +17,16 @@ import {
   createEastWallSprite,
   createSouthWallSprite,
   createBridgePillarSprite,
+  createTreeSprite,
+  createPineSprite,
+  createBushSprite,
   parseConnectionsKey,
   ALL_CONNECTION_KEYS,
   SPRITE_KEYS,
   eastWallKey,
   southWallKey,
   bridgePillarKey,
+  bridgeAsphaltKey,
 } from '../assets/sprites';
 import type { Heading } from '../assets/sprites';
 import {
@@ -112,6 +115,7 @@ export class CabinetIsoScene extends Phaser.Scene {
   private map: TileType[][] = [];
   private heights: number[][] = [];
   private bridges: BridgeTile[] = [];
+  private decorations: Decoration[] = [];
   private truck!: Phaser.GameObjects.Image;
   private hoverTile!: Phaser.GameObjects.Polygon;
   private pathMarkers: Phaser.GameObjects.Arc[] = [];
@@ -141,6 +145,7 @@ export class CabinetIsoScene extends Phaser.Scene {
     this.map = world.tiles;
     this.heights = world.heights;
     this.bridges = world.bridges;
+    this.decorations = world.decorations;
 
     for (let y = 0; y < MAP_H; y++) {
       for (let x = 0; x < MAP_W; x++) {
@@ -213,8 +218,26 @@ export class CabinetIsoScene extends Phaser.Scene {
       }
 
       const bridgeConnKey = getBridgeConnectionsKey(this.bridges, bridge.x, bridge.y);
-      const bridgeImg = this.add.image(sx, sy - bridgeH * HEIGHT_PIXELS, asphaltKey(bridgeConnKey));
+      // Brücken-Variante OHNE Gras-Hintergrund verwenden
+      const bridgeImg = this.add.image(sx, sy - bridgeH * HEIGHT_PIXELS, bridgeAsphaltKey(bridgeConnKey));
       bridgeImg.setDepth(bridge.y * DEPTH_PER_ROW + DEPTH_BRIDGE_TILE);
+    }
+
+    // Decorations rendern (Bäume, Sträucher) — nach Tiles + Wänden, vor Vehicles
+    for (const dec of this.decorations) {
+      const { x: sx, y: sy } = gridToScreen(dec.x, dec.y);
+      const h = this.heights[dec.y][dec.x] ?? 0;
+      const offsetX = (dec.offsetX ?? 0) * 16;
+      const offsetY = (dec.offsetY ?? 0) * 8;
+      const key =
+        dec.kind === 'pine' ? SPRITE_KEYS.pine
+        : dec.kind === 'bush' ? SPRITE_KEYS.bush
+        : SPRITE_KEYS.tree;
+      const dx = sx + offsetX;
+      const dy = sy - h * HEIGHT_PIXELS + 8 + offsetY;
+      const decImg = this.add.image(dx, dy, key);
+      decImg.setOrigin(0.5, 1); // bottom-center anchor
+      decImg.setDepth(dec.y * DEPTH_PER_ROW + DEPTH_VEHICLE - 5); // unter Vehicles
     }
 
     const halfW = TILE_W / 2;
@@ -275,11 +298,16 @@ export class CabinetIsoScene extends Phaser.Scene {
     if (!tex.exists(SPRITE_KEYS.tileSchotter)) tex.addCanvas(SPRITE_KEYS.tileSchotter, createSchotterTileSprite());
     if (!tex.exists(SPRITE_KEYS.tileFeldweg)) tex.addCanvas(SPRITE_KEYS.tileFeldweg, createFeldwegTileSprite());
 
-    // Alle 16 Asphalt-Auto-Tiling-Varianten registrieren
+    // Alle 16 Asphalt-Auto-Tiling-Varianten registrieren (mit Gras-Hintergrund)
     for (const key of ALL_CONNECTION_KEYS) {
       const texKey = asphaltKey(key);
       if (!tex.exists(texKey)) {
-        tex.addCanvas(texKey, createAsphaltOverlaySprite(parseConnectionsKey(key)));
+        tex.addCanvas(texKey, createAsphaltOverlaySprite(parseConnectionsKey(key), true));
+      }
+      // Plus Brücken-Variante (OHNE Gras-Hintergrund — nur Asphalt-Sprite)
+      const bKey = bridgeAsphaltKey(key);
+      if (!tex.exists(bKey)) {
+        tex.addCanvas(bKey, createAsphaltOverlaySprite(parseConnectionsKey(key), false));
       }
     }
 
@@ -297,11 +325,12 @@ export class CabinetIsoScene extends Phaser.Scene {
       if (!tex.exists(pKey)) tex.addCanvas(pKey, createBridgePillarSprite(h * HEIGHT_PIXELS));
     }
 
-    const truckSet = createTruckSpriteSet();
-    if (!tex.exists(SPRITE_KEYS.truckSE)) tex.addCanvas(SPRITE_KEYS.truckSE, truckSet.se);
-    if (!tex.exists(SPRITE_KEYS.truckNW)) tex.addCanvas(SPRITE_KEYS.truckNW, truckSet.nw);
-    if (!tex.exists(SPRITE_KEYS.truckSW)) tex.addCanvas(SPRITE_KEYS.truckSW, truckSet.sw);
-    if (!tex.exists(SPRITE_KEYS.truckNE)) tex.addCanvas(SPRITE_KEYS.truckNE, truckSet.ne);
+    // Decorations: Bäume + Sträucher
+    if (!tex.exists(SPRITE_KEYS.tree)) tex.addCanvas(SPRITE_KEYS.tree, createTreeSprite());
+    if (!tex.exists(SPRITE_KEYS.pine)) tex.addCanvas(SPRITE_KEYS.pine, createPineSprite());
+    if (!tex.exists(SPRITE_KEYS.bush)) tex.addCanvas(SPRITE_KEYS.bush, createBushSprite());
+
+    // LKW-Sprite kommt aus vehicles.png (preload)
   }
 
   private setHeading(h: Heading): void {

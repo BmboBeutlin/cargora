@@ -24,6 +24,7 @@ export { createFeldwegTileSprite } from './tile-feldweg.ts';
 export { createWarehouseSprite } from './warehouse.ts';
 export { createEastWallSprite, createSouthWallSprite } from './tile-wall.ts';
 export { createBridgePillarSprite } from './bridge-pillar.ts';
+export { createTreeSprite, createPineSprite, createBushSprite } from './tree.ts';
 
 /**
  * Recommended texture keys for Phaser registration.
@@ -40,6 +41,9 @@ export const SPRITE_KEYS = {
   tileSchotter: 'sprite-tile-schotter',
   tileFeldweg: 'sprite-tile-feldweg',
   warehouse: 'sprite-warehouse',
+  tree: 'sprite-tree',
+  pine: 'sprite-pine',
+  bush: 'sprite-bush',
   // Wand-Sprites werden dynamisch per Höhendiff registriert: 'sprite-wall-east-{diff}', 'sprite-wall-south-{diff}'
 } as const;
 
@@ -51,6 +55,9 @@ export function southWallKey(heightDiff: number): string {
 }
 export function bridgePillarKey(pillarHeight: number): string {
   return `sprite-bridge-pillar-${pillarHeight}`;
+}
+export function bridgeAsphaltKey(connKey: string): string {
+  return `sprite-bridge-asphalt-${connKey}`;
 }
 
 export type SpriteKey = (typeof SPRITE_KEYS)[keyof typeof SPRITE_KEYS];
