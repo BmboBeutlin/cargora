@@ -36,6 +36,8 @@ export { createTreeSprite, createPineSprite, createBushSprite } from './tree.ts'
 export { createWaterTileSprite } from './tile-water.ts';
 export { createHouseSprite, createApartmentSprite, createCottageSprite } from './house.ts';
 export { createTunnelEastSprite } from './tunnel.ts';
+export { createCloudLargeSprite, createCloudMediumSprite, createCloudSmallSprite } from './cloud.ts';
+export { createFactorySprite } from './factory.ts';
 
 /**
  * Recommended texture keys for Phaser registration.
@@ -61,6 +63,10 @@ export const SPRITE_KEYS = {
   apartment: 'sprite-apartment',
   cottage: 'sprite-cottage',
   tunnelEast: 'sprite-tunnel-east',
+  cloudLarge: 'sprite-cloud-large',
+  cloudMedium: 'sprite-cloud-medium',
+  cloudSmall: 'sprite-cloud-small',
+  factory: 'sprite-factory',
   // Wand-Sprites werden dynamisch per Höhendiff registriert: 'sprite-wall-east-{diff}', 'sprite-wall-south-{diff}'
 } as const;
 

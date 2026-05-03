@@ -31,6 +31,10 @@ import {
   createApartmentSprite,
   createCottageSprite,
   createTunnelEastSprite,
+  createCloudLargeSprite,
+  createCloudMediumSprite,
+  createCloudSmallSprite,
+  createFactorySprite,
   parseConnectionsKey,
   ALL_CONNECTION_KEYS,
   SPRITE_KEYS,
@@ -249,6 +253,36 @@ export class CabinetIsoScene extends Phaser.Scene {
       bridgeImg.setDepth(bridge.y * DEPTH_PER_ROW + DEPTH_BRIDGE_TILE);
     }
 
+    // Fabrik rendern (Demo: rechts unten in einem Schotter-Bezirk)
+    {
+      const factoryPos = { x: 13, y: 9 };
+      const fs = gridToScreen(factoryPos.x, factoryPos.y);
+      const factory = this.add.image(fs.x, fs.y + 4, SPRITE_KEYS.factory);
+      factory.setOrigin(0.5, 1);
+      factory.setDepth(factoryPos.y * DEPTH_PER_ROW + DEPTH_VEHICLE - 5);
+    }
+
+    // Wolken am Himmel — animiert über die Karte ziehen
+    const cloudKeys = [SPRITE_KEYS.cloudLarge, SPRITE_KEYS.cloudMedium, SPRITE_KEYS.cloudSmall];
+    for (let i = 0; i < 6; i++) {
+      const key = cloudKeys[i % 3];
+      const startX = -100 + i * 240 + Math.random() * 100;
+      const y = 30 + Math.random() * 80;
+      const cloud = this.add.image(startX, y, key);
+      cloud.setAlpha(0.85);
+      cloud.setDepth(DEPTH_HOVER - 2);
+      // Animation: über die Karte ziehen, dann von links wieder rein
+      const speed = 8000 + Math.random() * 6000;
+      this.tweens.add({
+        targets: cloud,
+        x: 1200,
+        duration: speed,
+        ease: 'Linear',
+        repeat: -1,
+        onRepeat: () => { cloud.x = -100; },
+      });
+    }
+
     // Tunnel-Eingang rendern (Demo: einer am Berg-Fuß)
     const tunnelDemo = { x: 11, y: 1 };
     {
@@ -419,6 +453,10 @@ export class CabinetIsoScene extends Phaser.Scene {
     if (!tex.exists(SPRITE_KEYS.apartment)) tex.addCanvas(SPRITE_KEYS.apartment, createApartmentSprite());
     if (!tex.exists(SPRITE_KEYS.cottage)) tex.addCanvas(SPRITE_KEYS.cottage, createCottageSprite());
     if (!tex.exists(SPRITE_KEYS.tunnelEast)) tex.addCanvas(SPRITE_KEYS.tunnelEast, createTunnelEastSprite());
+    if (!tex.exists(SPRITE_KEYS.cloudLarge)) tex.addCanvas(SPRITE_KEYS.cloudLarge, createCloudLargeSprite());
+    if (!tex.exists(SPRITE_KEYS.cloudMedium)) tex.addCanvas(SPRITE_KEYS.cloudMedium, createCloudMediumSprite());
+    if (!tex.exists(SPRITE_KEYS.cloudSmall)) tex.addCanvas(SPRITE_KEYS.cloudSmall, createCloudSmallSprite());
+    if (!tex.exists(SPRITE_KEYS.factory)) tex.addCanvas(SPRITE_KEYS.factory, createFactorySprite());
 
     // Default-LKW (rot via createTruckSpriteSet) als Haupt-Truck
     const truckSet = createTruckSpriteSet();
