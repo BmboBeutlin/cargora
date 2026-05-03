@@ -1,22 +1,26 @@
 /**
  * Feldweg-Tile (Diamond, 64x32) — Cabinet-Iso.
- *
- * Sandiger Erdweg mit Reifenspuren-Hint, weicher als Schotter.
+ * Variante C: Matschig dunkel mit Pfützen-Pixeln, ohne Outline.
  */
 
 const COL = {
-  outline: '#3a2e1e',
-  sandDark: '#7a6240',
-  sandMid: '#9a7e54',
-  sandLight: '#b89a6e',
-  rut: '#5a4528',
-  rutEdge: '#6a5230',
-  speck: '#c8b088',
+  base: '#7e6840',
+  variation: '#8e7a4a',
+  puddle: '#5a4a30',
+  highlight: '#9a8650',
+  shadow: '#5a4830',
 } as const;
 
-function px(ctx: CanvasRenderingContext2D, color: string, x: number, y: number, w = 1, h = 1): void {
+function inDiamond(x: number, y: number): boolean {
+  const dx = Math.abs(x - 31.5) / 32;
+  const dy = Math.abs(y - 15.5) / 16;
+  return dx + dy <= 1;
+}
+
+function px(ctx: CanvasRenderingContext2D, color: string, x: number, y: number): void {
+  if (!inDiamond(x, y)) return;
   ctx.fillStyle = color;
-  ctx.fillRect(x, y, w, h);
+  ctx.fillRect(x, y, 1, 1);
 }
 
 function fillDiamond(ctx: CanvasRenderingContext2D, color: string): void {
@@ -29,6 +33,14 @@ function fillDiamond(ctx: CanvasRenderingContext2D, color: string): void {
   }
 }
 
+function seedRand(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
+
 export function createFeldwegTileSprite(): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = 64;
@@ -36,64 +48,34 @@ export function createFeldwegTileSprite(): HTMLCanvasElement {
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
 
-  // Base
-  fillDiamond(ctx, COL.sandMid);
+  fillDiamond(ctx, COL.base);
 
-  // Light band upper-right
+  // Variation + Pfützen-Pixel
+  const r = seedRand(13);
+  for (let y = 0; y < 32; y++) {
+    for (let x = 0; x < 64; x++) {
+      if (!inDiamond(x, y)) continue;
+      const k = r();
+      if (k < 0.06) px(ctx, COL.puddle, x, y);
+      else if (k < 0.18) px(ctx, COL.variation, x, y);
+      else if (k < 0.22) px(ctx, COL.shadow, x, y);
+    }
+  }
+
+  // Größere Pfütze in der Mitte (matschiger Eindruck)
+  const puddle: Array<[number, number]> = [
+    [28, 14], [29, 14], [30, 14], [31, 14], [32, 14],
+    [27, 15], [28, 15], [33, 15], [34, 15],
+    [29, 16], [32, 16],
+  ];
+  for (const [x, y] of puddle) px(ctx, COL.puddle, x, y);
+
+  // Light band oben-rechts
   for (let y = 2; y < 14; y++) {
     const dy = y;
     const halfW = (dy + 1) * 2;
-    px(ctx, COL.sandLight, 32, y, halfW - 2, 1);
-  }
-  // Dark band lower-left
-  for (let y = 18; y < 30; y++) {
-    const dy = 31 - y;
-    const halfW = (dy + 1) * 2;
-    px(ctx, COL.sandDark, 32 - halfW + 2, y, halfW - 2, 1);
-  }
-
-  // Two soft tire ruts (continuous, slightly faded)
-  // Rut 1
-  for (let i = 0; i < 28; i++) {
-    const rx = 4 + i * 2;
-    const ry = 13 - Math.floor(i / 2);
-    if (ry >= 2 && ry < 30) {
-      px(ctx, COL.rutEdge, rx, ry - 1);
-      px(ctx, COL.rut, rx, ry);
-      px(ctx, COL.rut, rx + 1, ry);
-    }
-  }
-  // Rut 2
-  for (let i = 0; i < 28; i++) {
-    const rx = 4 + i * 2;
-    const ry = 19 - Math.floor(i / 2);
-    if (ry >= 2 && ry < 30) {
-      px(ctx, COL.rutEdge, rx, ry - 1);
-      px(ctx, COL.rut, rx, ry);
-      px(ctx, COL.rut, rx + 1, ry);
-    }
-  }
-
-  // Lighter sand specks
-  const specks: Array<[number, number]> = [
-    [22, 6], [40, 8], [44, 14], [16, 16],
-    [50, 20], [24, 22], [42, 24], [30, 26],
-    [18, 12], [36, 18],
-  ];
-  for (const [x, y] of specks) px(ctx, COL.speck, x, y);
-
-  // Diamond outline
-  for (let y = 0; y < 16; y++) {
-    const dy = y;
-    const halfW = (dy + 1) * 2;
-    px(ctx, COL.outline, 32 - halfW, y);
-    px(ctx, COL.outline, 32 + halfW - 1, y);
-  }
-  for (let y = 16; y < 32; y++) {
-    const dy = 31 - y;
-    const halfW = (dy + 1) * 2;
-    px(ctx, COL.outline, 32 - halfW, y);
-    px(ctx, COL.outline, 32 + halfW - 1, y);
+    ctx.fillStyle = COL.highlight;
+    ctx.fillRect(32, y, halfW - 1, 1);
   }
 
   return canvas;

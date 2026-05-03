@@ -8,7 +8,8 @@
  *   // -> Phaser z.B. via this.textures.addCanvas(SPRITE_KEYS.truck, canvas);
  */
 
-export { createTruckSprite } from './truck.ts';
+export { createTruckSprite, createTruckSpriteSet } from './truck.ts';
+export type { Heading } from './truck.ts';
 export { createAsphaltTileSprite } from './tile-asphalt.ts';
 export { createGrassTileSprite } from './tile-grass.ts';
 export { createSchotterTileSprite } from './tile-schotter.ts';
@@ -21,6 +22,10 @@ export { createWarehouseSprite } from './warehouse.ts';
  */
 export const SPRITE_KEYS = {
   truck: 'sprite-truck',
+  truckSE: 'sprite-truck-se',
+  truckNW: 'sprite-truck-nw',
+  truckSW: 'sprite-truck-sw',
+  truckNE: 'sprite-truck-ne',
   tileAsphalt: 'sprite-tile-asphalt',
   tileGrass: 'sprite-tile-grass',
   tileSchotter: 'sprite-tile-schotter',

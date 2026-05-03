@@ -1,21 +1,25 @@
 /**
  * Grass-Tile (Diamond, 64x32) — Cabinet-Iso.
- *
- * Gedaempftes Gruen mit ein paar Halmen + Variation (helle Specks).
+ * Variante B: Subtile Variation in zwei Grüntönen, kein Outline (nahtlose Übergänge).
  */
 
 const COL = {
-  outline: '#1f2e1a',
-  grassDark: '#3a5a2a',
-  grassMid: '#4a7a3a',
-  grassLight: '#5e9248',
-  blade: '#74a85a',
-  bladeShadow: '#2a4220',
+  base: '#3a5a3a',
+  variation: '#446644',
+  highlight: '#4e764e',
+  shadow: '#2e4a2e',
 } as const;
 
-function px(ctx: CanvasRenderingContext2D, color: string, x: number, y: number, w = 1, h = 1): void {
+function inDiamond(x: number, y: number): boolean {
+  const dx = Math.abs(x - 31.5) / 32;
+  const dy = Math.abs(y - 15.5) / 16;
+  return dx + dy <= 1;
+}
+
+function px(ctx: CanvasRenderingContext2D, color: string, x: number, y: number): void {
+  if (!inDiamond(x, y)) return;
   ctx.fillStyle = color;
-  ctx.fillRect(x, y, w, h);
+  ctx.fillRect(x, y, 1, 1);
 }
 
 function fillDiamond(ctx: CanvasRenderingContext2D, color: string): void {
@@ -28,6 +32,15 @@ function fillDiamond(ctx: CanvasRenderingContext2D, color: string): void {
   }
 }
 
+// Deterministic pseudo-random for reproducible texture
+function seedRand(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 9301 + 49297) % 233280;
+    return s / 233280;
+  };
+}
+
 export function createGrassTileSprite(): HTMLCanvasElement {
   const canvas = document.createElement('canvas');
   canvas.width = 64;
@@ -35,60 +48,18 @@ export function createGrassTileSprite(): HTMLCanvasElement {
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
 
-  // Base
-  fillDiamond(ctx, COL.grassMid);
+  fillDiamond(ctx, COL.base);
 
-  // Lighter band (upper-right, light source)
-  for (let y = 2; y < 14; y++) {
-    const dy = y;
-    const halfW = (dy + 1) * 2;
-    px(ctx, COL.grassLight, 32, y, halfW - 2, 1);
-  }
-
-  // Darker band (lower-left, shadow)
-  for (let y = 18; y < 30; y++) {
-    const dy = 31 - y;
-    const halfW = (dy + 1) * 2;
-    px(ctx, COL.grassDark, 32 - halfW + 2, y, halfW - 2, 1);
-  }
-
-  // Texture specks (small variations)
-  const specks: Array<[number, number, string]> = [
-    [20, 8, COL.grassDark],
-    [38, 10, COL.grassLight],
-    [28, 14, COL.grassDark],
-    [46, 16, COL.grassLight],
-    [16, 18, COL.grassDark],
-    [34, 20, COL.grassLight],
-    [42, 22, COL.grassDark],
-    [24, 24, COL.grassLight],
-    [30, 6, COL.grassDark],
-    [44, 12, COL.grassDark],
-  ];
-  for (const [x, y, c] of specks) px(ctx, c, x, y);
-
-  // Grass blades (small vertical 2px tufts with a shadow)
-  const blades: Array<[number, number]> = [
-    [22, 10], [36, 13], [27, 18], [44, 19], [18, 14], [40, 24],
-  ];
-  for (const [x, y] of blades) {
-    px(ctx, COL.bladeShadow, x, y + 1);
-    px(ctx, COL.blade, x, y);
-    px(ctx, COL.blade, x + 1, y - 1);
-  }
-
-  // Diamond outline
-  for (let y = 0; y < 16; y++) {
-    const dy = y;
-    const halfW = (dy + 1) * 2;
-    px(ctx, COL.outline, 32 - halfW, y);
-    px(ctx, COL.outline, 32 + halfW - 1, y);
-  }
-  for (let y = 16; y < 32; y++) {
-    const dy = 31 - y;
-    const halfW = (dy + 1) * 2;
-    px(ctx, COL.outline, 32 - halfW, y);
-    px(ctx, COL.outline, 32 + halfW - 1, y);
+  // Subtile Variation: dezente helle/dunkle Pixel
+  const r = seedRand(42);
+  for (let y = 0; y < 32; y++) {
+    for (let x = 0; x < 64; x++) {
+      if (!inDiamond(x, y)) continue;
+      const k = r();
+      if (k < 0.12) px(ctx, COL.variation, x, y);
+      else if (k < 0.18) px(ctx, COL.shadow, x, y);
+      else if (k < 0.22) px(ctx, COL.highlight, x, y);
+    }
   }
 
   return canvas;
