@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cargora — Tile-Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-base: #0d0f13; --bg-surface: #171b22; --bg-elevated: #1e2229;
+    --bg-card: #1a1e25; --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.18); --border-active: rgba(240,136,42,0.55);
+    --text-main: #c8d0db; --text-secondary: #7a8494; --text-dim: #3a424e;
+    --accent: #f0882a;
+  }
+  html, body {
+    background: var(--bg-base); color: var(--text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.55; min-height: 100vh;
+  }
+  body { padding: 48px 24px 120px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  header { margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
+  header h1 b { color: var(--accent); }
+  header p { color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem; }
+  section { margin-bottom: 56px; }
+  section h2 {
+    font-size: 1.3rem; font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .tag {
+    font-size: 0.65rem; font-weight: 700; padding: 3px 10px; border-radius: 4px;
+    background: rgba(255,255,255,0.05); color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .help { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 18px; }
+  .grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  }
+  @media (max-width: 800px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+  .variant {
+    background: var(--bg-card); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 14px; cursor: pointer;
+    transition: all 0.18s ease; position: relative;
+  }
+  .variant:hover { border-color: var(--border-strong); background: var(--bg-elevated); }
+  .variant.selected {
+    border-color: var(--border-active); background: rgba(240,136,42,0.06);
+  }
+  .variant.selected::after {
+    content: '✓'; position: absolute; top: 10px; right: 12px;
+    color: var(--accent); font-weight: 800; font-size: 1.1rem;
+  }
+  .preview {
+    background: var(--bg-base); border-radius: 6px;
+    padding: 16px; display: flex; align-items: center; justify-content: center;
+    min-height: 140px;
+    background-image:
+      linear-gradient(45deg, #0a0c10 25%, transparent 25%),
+      linear-gradient(-45deg, #0a0c10 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #0a0c10 75%),
+      linear-gradient(-45deg, transparent 75%, #0a0c10 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  }
+  .preview canvas {
+    image-rendering: pixelated;
+    transform: scale(2.5); transform-origin: center;
+  }
+  .preview canvas.cluster { transform: scale(2); }
+  .v-name { font-weight: 700; font-size: 0.85rem; margin-top: 12px; color: var(--text-main); }
+  .v-desc { font-size: 0.72rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+  .free-text-box {
+    margin-top: 24px; padding: 14px;
+    background: var(--bg-card); border: 1.5px dashed var(--border); border-radius: 8px;
+  }
+  .free-text-box label {
+    display: block; font-size: 0.7rem; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  textarea {
+    background: var(--bg-card); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 14px; width: 100%;
+    color: var(--text-main); font-size: 0.9rem; font-family: inherit;
+    min-height: 80px; resize: vertical;
+  }
+  textarea:focus { outline: none; border-color: var(--border-active); }
+  footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(13,15,19,0.95);
+    backdrop-filter: blur(18px); border-top: 1px solid var(--border);
+    padding: 16px 24px; z-index: 100;
+  }
+  .footer-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; gap: 12px; align-items: center; justify-content: space-between;
+  }
+  .status { font-size: 0.8rem; color: var(--text-secondary); }
+  .btn {
+    padding: 10px 18px; border-radius: 6px; border: 1.5px solid var(--border);
+    background: var(--bg-elevated); color: var(--text-main);
+    font-size: 0.85rem; font-weight: 600; font-family: inherit; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { background: #2a3038; border-color: var(--border-strong); }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #d97828; }
+  .modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; padding: 24px;
+  }
+  .modal.show { display: flex; }
+  .modal-content {
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 13px; padding: 28px; max-width: 720px; width: 100%;
+    max-height: 80vh; overflow-y: auto;
+  }
+  .modal-content pre {
+    background: var(--bg-base); border: 1px solid var(--border);
+    border-radius: 6px; padding: 16px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; color: var(--text-main); white-space: pre-wrap;
+    margin: 14px 0; max-height: 50vh; overflow-y: auto;
+  }
+  .cluster-row {
+    margin-top: 28px; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+  }
+  .cluster-title {
+    font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase;
+    letter-spacing: 0.1em; margin-bottom: 12px;
+  }
+  .cluster-canvas {
+    background: var(--bg-base); border-radius: 6px; padding: 16px;
+    min-height: 200px; display: flex; align-items: center; justify-content: center;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><b>Cargora</b> — Tile-Mockup</h1>
+    <p>Vergleiche pro Tile-Typ 4 Varianten. Wähle pro Reihe eine aus. Am Ende exportieren — ich bau die gewählten Varianten ein.</p>
+  </header>
+
+  <section data-tile="grass">
+    <h2>Gras <span class="tag">aktuell: Variante C</span></h2>
+    <div class="help">Gras ist der Hintergrund — sollte ruhig wirken, nicht visuell laut. Aktuelle Version (C) hat sichtbare Streifen, die unruhig wirken.</div>
+    <div class="grid"></div>
+  </section>
+
+  <section data-tile="asphalt">
+    <h2>Asphalt <span class="tag">aktuell: Variante B</span></h2>
+    <div class="help">Hauptverkehrsfläche — sollte als Straße erkennbar sein, nicht zu monoton aber auch nicht zu detailliert.</div>
+    <div class="grid"></div>
+  </section>
+
+  <section data-tile="schotter">
+    <h2>Schotter <span class="tag">aktuell: Variante B</span></h2>
+    <div class="help">Lager-/Hofbelag oder einfache Wege. Mittlere Geschwindigkeit (55%).</div>
+    <div class="grid"></div>
+  </section>
+
+  <section data-tile="feldweg">
+    <h2>Feldweg <span class="tag">aktuell: Variante B</span></h2>
+    <div class="help">Niedrige Geschwindigkeit (30%). Sollte erkennbar matschig/verbrannt aussehen.</div>
+    <div class="grid"></div>
+  </section>
+
+  <section>
+    <h2>Cluster-Vergleich (4×4 Tiles)</h2>
+    <div class="help">So sehen die jeweils gewählten Varianten zusammenhängend aus. Wichtig: nahtlose Übergänge!</div>
+    <div class="cluster-row">
+      <div class="cluster-title">Vorschau mit aktueller Auswahl</div>
+      <div class="cluster-canvas"><canvas id="cluster-canvas" class="cluster" width="320" height="160"></canvas></div>
+    </div>
+  </section>
+
+  <div class="free-text-box">
+    <label>Anmerkungen (optional)</label>
+    <textarea id="notes" placeholder="z.B. Gras zu hell/dunkel, neue Idee..."></textarea>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="status" id="status">0 / 4 Tile-Typen ausgewählt</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="reset-btn">Zurücksetzen</button>
+      <button class="btn btn-primary" id="export-btn" disabled>Auswahl exportieren</button>
+    </div>
+  </div>
+</footer>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h2>Auswahl — kopier in den Chat</h2>
+    <pre id="export-text"></pre>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" id="copy-btn">In Zwischenablage</button>
+      <button class="btn" id="close-btn">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // Diamond-Tile-Renderer: Pixel-DSL für 64×32 Diamond-Tiles
+  // ============================================================
+  const TILE_W = 64, TILE_H = 32;
+
+  function makeCanvas(w = TILE_W, h = TILE_H) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').imageSmoothingEnabled = false;
+    return c;
+  }
+
+  // Diamond mask: returns true if pixel (x, y) is inside the diamond
+  function inDiamond(x, y) {
+    const cx = TILE_W / 2 - 0.5, cy = TILE_H / 2 - 0.5;
+    const dx = Math.abs(x - cx) / (TILE_W / 2);
+    const dy = Math.abs(y - cy) / (TILE_H / 2);
+    return dx + dy <= 1;
+  }
+
+  function fillDiamond(ctx, color) {
+    ctx.fillStyle = color;
+    for (let y = 0; y < TILE_H; y++) {
+      for (let x = 0; x < TILE_W; x++) {
+        if (inDiamond(x, y)) ctx.fillRect(x, y, 1, 1);
+      }
+    }
+  }
+
+  function pixel(ctx, x, y, color) {
+    if (!inDiamond(x, y)) return;
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, 1, 1);
+  }
+
+  // Pseudo-random with seed for reproducibility
+  function seedRand(seed) {
+    let s = seed;
+    return () => {
+      s = (s * 9301 + 49297) % 233280;
+      return s / 233280;
+    };
+  }
+
+  // ============================================================
+  // GRAS-Varianten
+  // ============================================================
+  const grassVariants = {
+    A: {
+      name: 'Einheitlich (ruhig)',
+      desc: 'Eine einzige Grünfarbe, keine Textur. Sehr ruhig, wirkt evtl. flach.',
+      render() {
+        const c = makeCanvas();
+        fillDiamond(c.getContext('2d'), '#3a5a3a');
+        return c;
+      }
+    },
+    B: {
+      name: 'Subtile Variation',
+      desc: 'Zwei Grüntöne in dezentem Muster. Gibt Tiefe ohne aufdringlich zu sein.',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#3a5a3a');
+        const r = seedRand(42);
+        for (let y = 0; y < TILE_H; y++) {
+          for (let x = 0; x < TILE_W; x++) {
+            if (!inDiamond(x, y)) continue;
+            if (r() < 0.18) pixel(ctx, x, y, '#446644');
+          }
+        }
+        return c;
+      }
+    },
+    C: {
+      name: 'Mit Halmen (laut, AKTUELL)',
+      desc: 'Aktueller Stil mit vielen Halmen und Streifen. Wirkt unruhig.',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#3a5a3a');
+        const r = seedRand(7);
+        for (let y = 0; y < TILE_H; y++) {
+          for (let x = 0; x < TILE_W; x++) {
+            if (!inDiamond(x, y)) continue;
+            const k = r();
+            if (k < 0.15) pixel(ctx, x, y, '#4a7a4a');
+            else if (k < 0.20) pixel(ctx, x, y, '#5a8a5a');
+            else if (k < 0.25) pixel(ctx, x, y, '#2a4a2a');
+          }
+        }
+        return c;
+      }
+    },
+    D: {
+      name: 'Wiese mit Blümchen',
+      desc: 'Ruhiger Grünton, vereinzelt kleine Farbpunkte (weiße/gelbe Blumen).',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#456f45');
+        const r = seedRand(99);
+        for (let y = 0; y < TILE_H; y++) {
+          for (let x = 0; x < TILE_W; x++) {
+            if (!inDiamond(x, y)) continue;
+            const k = r();
+            if (k < 0.04) pixel(ctx, x, y, '#e8e2c0');  // gelblich
+            else if (k < 0.07) pixel(ctx, x, y, '#d8d4d0');  // weiß
+          }
+        }
+        return c;
+      }
+    }
+  };
+
+  // ============================================================
+  // ASPHALT-Varianten
+  // ============================================================
+  const asphaltVariants = {
+    A: {
+      name: 'Einheitlich glatt',
+      desc: 'Eine einzige Grau-Farbe, keine Textur. Sehr ruhig.',
+      render() {
+        const c = makeCanvas();
+        fillDiamond(c.getContext('2d'), '#3a3a42');
+        return c;
+      }
+    },
+    B: {
+      name: 'Mit Aggregat-Specks (AKTUELL)',
+      desc: 'Aktueller Stil mit Spurrillen + Aggregat-Pixeln.',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#3a3a42');
+        const r = seedRand(11);
+        for (let y = 0; y < TILE_H; y++) {
+          for (let x = 0; x < TILE_W; x++) {
+            if (!inDiamond(x, y)) continue;
+            if (r() < 0.10) pixel(ctx, x, y, '#4a4a52');
+            else if (r() < 0.05) pixel(ctx, x, y, '#2a2a32');
+          }
+        }
+        return c;
+      }
+    },
+    C: {
+      name: 'Mit Mittellinie (gelb)',
+      desc: 'Zwei Spuren mit gestrichelter gelber Mittellinie. Sehr "Straße".',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#3a3a42');
+        // Gelbe Mittellinie längs der Diamond-Hauptachse (Bildschirm-horizontal in Iso = Welt-Antidiagonal)
+        for (let i = 0; i < 6; i++) {
+          const x = 16 + i * 6;
+          const y = 16;
+          if (i % 2 === 0) {
+            pixel(ctx, x, y, '#d8b020');
+            pixel(ctx, x + 1, y, '#d8b020');
+          }
+        }
+        return c;
+      }
+    },
+    D: {
+      name: 'Mit Zebrastreifen-Hint',
+      desc: 'Sehr dezente helle Striche längs Hauptrichtung — wirkt wie befahrene Straße.',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#3c3c44');
+        // Zwei Spurrillen
+        for (let x = 14; x < 50; x++) {
+          if (inDiamond(x, 12)) pixel(ctx, x, 12, '#48484f');
+          if (inDiamond(x, 19)) pixel(ctx, x, 19, '#48484f');
+        }
+        return c;
+      }
+    }
+  };
+
+  // ============================================================
+  // SCHOTTER-Varianten
+  // ============================================================
+  const schotterVariants = {
+    A: {
+      name: 'Einheitlich beige',
+      desc: 'Eine einzige Beige-Farbe.',
+      render() {
+        const c = makeCanvas();
+        fillDiamond(c.getContext('2d'), '#8a7a5e');
+        return c;
+      }
+    },
+    B: {
+      name: 'Mit Stein-Pixeln (AKTUELL)',
+      desc: 'Verteilte kleine Stein-Punkte in 3 Farbnuancen.',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#8a7a5e');
+        const r = seedRand(33);
+        for (let y = 0; y < TILE_H; y++) {
+          for (let x = 0; x < TILE_W; x++) {
+            if (!inDiamond(x, y)) continue;
+            const k = r();
+            if (k < 0.08) pixel(ctx, x, y, '#a08068');
+            else if (k < 0.13) pixel(ctx, x, y, '#6e5e44');
+            else if (k < 0.16) pixel(ctx, x, y, '#beae8e');
+          }
+        }
+        return c;
+      }
+    },
+    C: {
+      name: 'Mit Rüttel-Spurrillen',
+      desc: 'Schotter mit zwei sichtbaren Reifenspuren längs.',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#8a7a5e');
+        // 2 Spurrillen
+        for (let x = 14; x < 50; x++) {
+          if (inDiamond(x, 12)) pixel(ctx, x, 12, '#6e5e44');
+          if (inDiamond(x, 19)) pixel(ctx, x, 19, '#6e5e44');
+        }
+        const r = seedRand(55);
+        for (let y = 0; y < TILE_H; y++) {
+          for (let x = 0; x < TILE_W; x++) {
+            if (!inDiamond(x, y)) continue;
+            if (r() < 0.05) pixel(ctx, x, y, '#a08068');
+          }
+        }
+        return c;
+      }
+    },
+    D: {
+      name: 'Hellsand',
+      desc: 'Heller, sandiger Beige-Ton mit feinen Punkten.',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#beae8e');
+        const r = seedRand(77);
+        for (let y = 0; y < TILE_H; y++) {
+          for (let x = 0; x < TILE_W; x++) {
+            if (!inDiamond(x, y)) continue;
+            if (r() < 0.10) pixel(ctx, x, y, '#a89e7e');
+          }
+        }
+        return c;
+      }
+    }
+  };
+
+  // ============================================================
+  // FELDWEG-Varianten
+  // ============================================================
+  const feldwegVariants = {
+    A: {
+      name: 'Einheitlich erdig',
+      desc: 'Erdfarbener Ton, keine Spuren.',
+      render() {
+        const c = makeCanvas();
+        fillDiamond(c.getContext('2d'), '#a68a52');
+        return c;
+      }
+    },
+    B: {
+      name: 'Zwei Reifenspuren (AKTUELL)',
+      desc: 'Zwei kontinuierliche dunkle Spurrillen längs.',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#a68a52');
+        for (let x = 14; x < 50; x++) {
+          if (inDiamond(x, 12)) pixel(ctx, x, 12, '#866a32');
+          if (inDiamond(x, 19)) pixel(ctx, x, 19, '#866a32');
+        }
+        return c;
+      }
+    },
+    C: {
+      name: 'Matschig dunkel',
+      desc: 'Dunklerer, "nasser" Erdton mit ein paar dunklen Pfützen-Pixeln.',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        fillDiamond(ctx, '#7e6840');
+        const r = seedRand(13);
+        for (let y = 0; y < TILE_H; y++) {
+          for (let x = 0; x < TILE_W; x++) {
+            if (!inDiamond(x, y)) continue;
+            const k = r();
+            if (k < 0.05) pixel(ctx, x, y, '#5a4a30');  // Pfütze
+            else if (k < 0.10) pixel(ctx, x, y, '#8e7a4a');  // Variation
+          }
+        }
+        return c;
+      }
+    },
+    D: {
+      name: 'Trampelpfad mit Gras-Rand',
+      desc: 'Erdiger Hauptstreifen in der Mitte, Gras am Diamond-Rand.',
+      render() {
+        const c = makeCanvas();
+        const ctx = c.getContext('2d');
+        // Erst Gras
+        fillDiamond(ctx, '#3a5a3a');
+        // Mittlerer Erdstreifen (zentraler Bereich)
+        for (let y = 0; y < TILE_H; y++) {
+          for (let x = 0; x < TILE_W; x++) {
+            if (!inDiamond(x, y)) continue;
+            const cx = TILE_W / 2 - 0.5, cy = TILE_H / 2 - 0.5;
+            const dx = Math.abs(x - cx) / (TILE_W / 2);
+            const dy = Math.abs(y - cy) / (TILE_H / 2);
+            if (dx + dy <= 0.65) pixel(ctx, x, y, '#a68a52');
+          }
+        }
+        return c;
+      }
+    }
+  };
+
+  const allVariants = {
+    grass: grassVariants,
+    asphalt: asphaltVariants,
+    schotter: schotterVariants,
+    feldweg: feldwegVariants,
+  };
+
+  const STORAGE_KEY = 'cargora-tile-mockup';
+  const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+  function init() {
+    Object.keys(allVariants).forEach(tileType => {
+      const section = document.querySelector(`section[data-tile="${tileType}"]`);
+      const grid = section.querySelector('.grid');
+      Object.entries(allVariants[tileType]).forEach(([key, variant]) => {
+        const div = document.createElement('div');
+        div.className = 'variant';
+        div.dataset.value = key;
+        if (state[tileType] === key) div.classList.add('selected');
+        const previewCanvas = variant.render();
+        div.innerHTML = `
+          <div class="preview"></div>
+          <div class="v-name">${variant.name}</div>
+          <div class="v-desc">${variant.desc}</div>
+        `;
+        div.querySelector('.preview').appendChild(previewCanvas);
+        div.addEventListener('click', () => {
+          grid.querySelectorAll('.variant').forEach(v => v.classList.remove('selected'));
+          div.classList.add('selected');
+          state[tileType] = key;
+          save();
+          updateCluster();
+        });
+        grid.appendChild(div);
+      });
+    });
+    document.getElementById('notes').value = state.notes || '';
+    document.getElementById('notes').addEventListener('input', e => {
+      state.notes = e.target.value;
+      save();
+    });
+    updateCluster();
+    save();
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const count = ['grass', 'asphalt', 'schotter', 'feldweg'].filter(k => state[k]).length;
+    document.getElementById('status').textContent = count + ' / 4 Tile-Typen ausgewählt';
+    document.getElementById('export-btn').disabled = count < 4;
+  }
+
+  function updateCluster() {
+    const canvas = document.getElementById('cluster-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, 320, 160);
+    // 5×5 Mini-Stadt-Layout
+    const layout = [
+      ['grass', 'grass', 'asphalt', 'grass', 'grass'],
+      ['grass', 'schotter', 'asphalt', 'feldweg', 'grass'],
+      ['asphalt', 'asphalt', 'asphalt', 'asphalt', 'asphalt'],
+      ['grass', 'schotter', 'asphalt', 'feldweg', 'grass'],
+      ['grass', 'grass', 'asphalt', 'grass', 'grass'],
+    ];
+    const ORIGIN_X = 160;
+    const ORIGIN_Y = 30;
+    const TW = 64, TH = 32;
+    for (let y = 0; y < 5; y++) {
+      for (let x = 0; x < 5; x++) {
+        const tile = layout[y][x];
+        const variantKey = state[tile] || Object.keys(allVariants[tile])[0];
+        const tileCanvas = allVariants[tile][variantKey].render();
+        const sx = ORIGIN_X + (x - y) * (TW / 2) - TW / 2;
+        const sy = ORIGIN_Y + (x + y) * (TH / 2) - TH / 2;
+        ctx.drawImage(tileCanvas, sx, sy);
+      }
+    }
+  }
+
+  function buildExport() {
+    const variantNames = {
+      grass: allVariants.grass[state.grass]?.name,
+      asphalt: allVariants.asphalt[state.asphalt]?.name,
+      schotter: allVariants.schotter[state.schotter]?.name,
+      feldweg: allVariants.feldweg[state.feldweg]?.name,
+    };
+    const lines = [
+      '# Cargora Tile-Mockup — Auswahl',
+      '',
+      'Datum: ' + new Date().toISOString().slice(0, 10),
+      '',
+      `- **Gras:** Variante ${state.grass} (${variantNames.grass})`,
+      `- **Asphalt:** Variante ${state.asphalt} (${variantNames.asphalt})`,
+      `- **Schotter:** Variante ${state.schotter} (${variantNames.schotter})`,
+      `- **Feldweg:** Variante ${state.feldweg} (${variantNames.feldweg})`,
+    ];
+    if (state.notes && state.notes.trim()) {
+      lines.push('', '## Anmerkungen', '', state.notes.trim());
+    }
+    return lines.join('\n');
+  }
+
+  document.getElementById('export-btn').addEventListener('click', () => {
+    document.getElementById('export-text').textContent = buildExport();
+    document.getElementById('modal').classList.add('show');
+  });
+  document.getElementById('close-btn').addEventListener('click', () => {
+    document.getElementById('modal').classList.remove('show');
+  });
+  document.getElementById('copy-btn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('export-text').textContent);
+      document.getElementById('copy-btn').textContent = 'Kopiert ✓';
+      setTimeout(() => { document.getElementById('copy-btn').textContent = 'In Zwischenablage'; }, 1500);
+    } catch (e) { alert('Manuell kopieren'); }
+  });
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm('Alle Auswahl zurücksetzen?')) {
+      Object.keys(state).forEach(k => delete state[k]);
+      localStorage.removeItem(STORAGE_KEY);
+      document.querySelectorAll('.variant.selected').forEach(v => v.classList.remove('selected'));
+      document.getElementById('notes').value = '';
+      save();
+      updateCluster();
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>

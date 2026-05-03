@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Cargora — LKW-Mockup</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg-base: #0d0f13; --bg-surface: #171b22; --bg-elevated: #1e2229;
+    --bg-card: #1a1e25; --border: rgba(255,255,255,0.07);
+    --border-strong: rgba(255,255,255,0.18); --border-active: rgba(240,136,42,0.55);
+    --text-main: #c8d0db; --text-secondary: #7a8494; --text-dim: #3a424e;
+    --accent: #f0882a;
+  }
+  html, body {
+    background: var(--bg-base); color: var(--text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    line-height: 1.55; min-height: 100vh;
+  }
+  body { padding: 48px 24px 120px; }
+  .container { max-width: 1200px; margin: 0 auto; }
+  header { margin-bottom: 40px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+  header h1 { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.02em; }
+  header h1 b { color: var(--accent); }
+  header p { color: var(--text-secondary); margin-top: 8px; font-size: 0.95rem; max-width: 800px; }
+  section { margin-bottom: 56px; }
+  section h2 {
+    font-size: 1.3rem; font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .tag {
+    font-size: 0.65rem; font-weight: 700; padding: 3px 10px; border-radius: 4px;
+    background: rgba(240,136,42,0.14); color: var(--accent);
+    text-transform: uppercase; letter-spacing: 0.1em;
+  }
+  .help { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 18px; max-width: 800px; }
+  .grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
+  }
+  @media (min-width: 900px) {
+    .grid { grid-template-columns: repeat(4, 1fr); }
+  }
+  .variant {
+    background: var(--bg-card); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 14px; cursor: pointer;
+    transition: all 0.18s ease; position: relative;
+  }
+  .variant:hover { border-color: var(--border-strong); background: var(--bg-elevated); }
+  .variant.selected {
+    border-color: var(--border-active); background: rgba(240,136,42,0.06);
+  }
+  .variant.selected::after {
+    content: '✓'; position: absolute; top: 10px; right: 12px;
+    color: var(--accent); font-weight: 800; font-size: 1.1rem;
+  }
+  .preview {
+    background: #2a3038; border-radius: 6px;
+    padding: 14px; min-height: 180px;
+    display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr);
+    gap: 6px; align-items: center; justify-items: center;
+  }
+  .preview canvas {
+    image-rendering: pixelated;
+    transform: scale(2.2);
+  }
+  .heading-label {
+    position: absolute; top: 4px; left: 4px;
+    font-size: 0.55rem; color: var(--text-secondary);
+    background: rgba(0,0,0,0.4); padding: 1px 4px; border-radius: 3px;
+  }
+  .preview-cell { position: relative; width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center; }
+  .v-name { font-weight: 700; font-size: 0.85rem; margin-top: 12px; color: var(--text-main); }
+  .v-desc { font-size: 0.72rem; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+  .free-text-box {
+    margin-top: 24px; padding: 14px;
+    background: var(--bg-card); border: 1.5px dashed var(--border); border-radius: 8px;
+  }
+  .free-text-box label {
+    display: block; font-size: 0.7rem; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px;
+  }
+  textarea {
+    background: var(--bg-card); border: 1.5px solid var(--border);
+    border-radius: 10px; padding: 14px; width: 100%;
+    color: var(--text-main); font-size: 0.9rem; font-family: inherit;
+    min-height: 80px; resize: vertical;
+  }
+  textarea:focus { outline: none; border-color: var(--border-active); }
+  footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(13,15,19,0.95);
+    backdrop-filter: blur(18px); border-top: 1px solid var(--border);
+    padding: 16px 24px; z-index: 100;
+  }
+  .footer-inner {
+    max-width: 1200px; margin: 0 auto;
+    display: flex; gap: 12px; align-items: center; justify-content: space-between;
+  }
+  .status { font-size: 0.8rem; color: var(--text-secondary); }
+  .btn {
+    padding: 10px 18px; border-radius: 6px; border: 1.5px solid var(--border);
+    background: var(--bg-elevated); color: var(--text-main);
+    font-size: 0.85rem; font-weight: 600; font-family: inherit; cursor: pointer;
+  }
+  .btn:hover { background: #2a3038; }
+  .btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #d97828; }
+  .modal {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 200; padding: 24px;
+  }
+  .modal.show { display: flex; }
+  .modal-content {
+    background: var(--bg-surface); border: 1px solid var(--border);
+    border-radius: 13px; padding: 28px; max-width: 720px; width: 100%;
+    max-height: 80vh; overflow-y: auto;
+  }
+  .modal-content pre {
+    background: var(--bg-base); border: 1px solid var(--border);
+    border-radius: 6px; padding: 16px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; color: var(--text-main); white-space: pre-wrap;
+    margin: 14px 0; max-height: 50vh; overflow-y: auto;
+  }
+  .heading-explainer {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; margin-bottom: 24px;
+    font-size: 0.82rem;
+  }
+  .heading-explainer b { color: var(--accent); }
+  .heading-explainer ul { margin-top: 8px; padding-left: 20px; color: var(--text-secondary); }
+  .heading-explainer li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1><b>Cargora</b> — LKW-Mockup</h1>
+    <p>Wähle einen LKW-Stil. Jede Variante zeigt vier Heading-Richtungen (rechts-unten, links-oben, links-unten, rechts-oben) — der LKW soll später automatisch in die Fahrtrichtung schauen.</p>
+  </header>
+
+  <div class="heading-explainer">
+    <b>Was ist Heading?</b>
+    <ul>
+      <li><b>Welt-Bewegung X+</b> (Bildschirm: rechts-unten) → LKW schaut nach rechts-unten</li>
+      <li><b>Welt-Bewegung X-</b> (Bildschirm: links-oben) → LKW schaut nach links-oben</li>
+      <li><b>Welt-Bewegung Y+</b> (Bildschirm: links-unten) → LKW schaut nach links-unten</li>
+      <li><b>Welt-Bewegung Y-</b> (Bildschirm: rechts-oben) → LKW schaut nach rechts-oben</li>
+    </ul>
+    Aktueller Bug: Der LKW schaut immer in die selbe Richtung, egal wohin er fährt. Mit Heading-System wird das gefixt.
+  </div>
+
+  <section>
+    <h2>LKW-Stile <span class="tag">Wähle einen</span></h2>
+    <div class="help">Jede Vorschau zeigt: oben-links rechts-unten-Heading, oben-rechts links-oben-Heading, unten-links links-unten-Heading, unten-rechts rechts-oben-Heading.</div>
+    <div class="grid" id="truck-grid"></div>
+  </section>
+
+  <div class="free-text-box">
+    <label>Anmerkungen / Sonderwünsche</label>
+    <textarea id="notes" placeholder="z.B. Farben anders, Cargo-Box länger, Schatten dazu, ..."></textarea>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="status" id="status">Kein LKW ausgewählt</div>
+    <div style="display:flex;gap:8px">
+      <button class="btn" id="reset-btn">Zurücksetzen</button>
+      <button class="btn btn-primary" id="export-btn" disabled>Auswahl exportieren</button>
+    </div>
+  </div>
+</footer>
+
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <h2>Auswahl — kopier in den Chat</h2>
+    <pre id="export-text"></pre>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-primary" id="copy-btn">In Zwischenablage</button>
+      <button class="btn" id="close-btn">Schließen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // LKW-Sprite-Generatoren mit Heading-Support
+  // ============================================================
+  // Heading-Konvention (für Cabinet-Iso):
+  //   'se' = nach rechts-unten (Welt: X+)
+  //   'nw' = nach links-oben   (Welt: X-)
+  //   'sw' = nach links-unten  (Welt: Y+)
+  //   'ne' = nach rechts-oben  (Welt: Y-)
+  // Jeder LKW-Renderer erhält das Heading und zeichnet die Kabine entsprechend vorne.
+
+  const W = 48, H = 48;
+
+  function makeCanvas(w = W, h = H) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').imageSmoothingEnabled = false;
+    return c;
+  }
+
+  function rect(ctx, x, y, w, h, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, w, h);
+  }
+
+  function pixel(ctx, x, y, color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(x, y, 1, 1);
+  }
+
+  // --------------------------------------------------------------
+  // Stil A: Box-Truck (klassisch, Cargo-Box hinten, Kabine vorne)
+  // --------------------------------------------------------------
+  function renderBoxTruck(heading) {
+    const c = makeCanvas();
+    const ctx = c.getContext('2d');
+    // Iso-Truck als 4 Heading-Varianten
+    const cabin = '#5a98e8';
+    const cargo = '#3a78c8';
+    const window_ = '#a8c8f0';
+    const wheel = '#1a1a1a';
+    const shadow = 'rgba(0,0,0,0.35)';
+
+    // Schatten unter dem LKW
+    ctx.fillStyle = shadow;
+    ctx.beginPath();
+    ctx.ellipse(W / 2, H - 8, 16, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    if (heading === 'se') {
+      // Cargo links, Kabine rechts (zeigt nach rechts-unten)
+      rect(ctx, 10, 18, 16, 14, cargo);
+      rect(ctx, 26, 16, 12, 16, cabin);
+      rect(ctx, 28, 18, 8, 6, window_);   // Windschutz
+      rect(ctx, 14, 32, 4, 3, wheel);
+      rect(ctx, 30, 32, 4, 3, wheel);
+    } else if (heading === 'nw') {
+      // Kabine links, Cargo rechts (zeigt nach links-oben)
+      rect(ctx, 10, 16, 12, 16, cabin);
+      rect(ctx, 22, 18, 16, 14, cargo);
+      rect(ctx, 12, 18, 8, 6, window_);
+      rect(ctx, 14, 32, 4, 3, wheel);
+      rect(ctx, 30, 32, 4, 3, wheel);
+    } else if (heading === 'sw') {
+      // Cargo oben, Kabine unten (zeigt nach links-unten)
+      rect(ctx, 14, 12, 14, 16, cargo);
+      rect(ctx, 12, 28, 16, 8, cabin);
+      rect(ctx, 14, 30, 6, 4, window_);
+      rect(ctx, 14, 36, 4, 3, wheel);
+      rect(ctx, 24, 36, 4, 3, wheel);
+    } else { // ne
+      // Kabine oben, Cargo unten (zeigt nach rechts-oben)
+      rect(ctx, 12, 12, 16, 8, cabin);
+      rect(ctx, 22, 14, 6, 4, window_);
+      rect(ctx, 14, 20, 14, 16, cargo);
+      rect(ctx, 14, 36, 4, 3, wheel);
+      rect(ctx, 24, 36, 4, 3, wheel);
+    }
+    return c;
+  }
+
+  // --------------------------------------------------------------
+  // Stil B: Pickup (kürzere Cargo, offen)
+  // --------------------------------------------------------------
+  function renderPickup(heading) {
+    const c = makeCanvas();
+    const ctx = c.getContext('2d');
+    const body = '#c84038';
+    const bodyD = '#a83028';
+    const window_ = '#a8c8f0';
+    const wheel = '#1a1a1a';
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath(); ctx.ellipse(W / 2, H - 8, 14, 3, 0, 0, Math.PI * 2); ctx.fill();
+
+    if (heading === 'se') {
+      rect(ctx, 14, 22, 12, 10, bodyD); // offene Ladefläche
+      rect(ctx, 26, 18, 12, 14, body);
+      rect(ctx, 28, 20, 8, 5, window_);
+      rect(ctx, 16, 32, 4, 3, wheel);
+      rect(ctx, 30, 32, 4, 3, wheel);
+    } else if (heading === 'nw') {
+      rect(ctx, 10, 18, 12, 14, body);
+      rect(ctx, 22, 22, 12, 10, bodyD);
+      rect(ctx, 12, 20, 8, 5, window_);
+      rect(ctx, 14, 32, 4, 3, wheel);
+      rect(ctx, 28, 32, 4, 3, wheel);
+    } else if (heading === 'sw') {
+      rect(ctx, 16, 14, 12, 10, bodyD);
+      rect(ctx, 12, 24, 16, 12, body);
+      rect(ctx, 14, 26, 6, 5, window_);
+      rect(ctx, 14, 36, 4, 3, wheel);
+      rect(ctx, 24, 36, 4, 3, wheel);
+    } else {
+      rect(ctx, 12, 12, 16, 12, body);
+      rect(ctx, 20, 14, 6, 5, window_);
+      rect(ctx, 16, 24, 12, 10, bodyD);
+      rect(ctx, 14, 36, 4, 3, wheel);
+      rect(ctx, 24, 36, 4, 3, wheel);
+    }
+    return c;
+  }
+
+  // --------------------------------------------------------------
+  // Stil C: Container-Truck (lang, mit Container)
+  // --------------------------------------------------------------
+  function renderContainerTruck(heading) {
+    const c = makeCanvas();
+    const ctx = c.getContext('2d');
+    const cabin = '#3a3a42';
+    const container = '#a06840';
+    const containerD = '#7a4f30';
+    const window_ = '#a8c8f0';
+    const wheel = '#1a1a1a';
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath(); ctx.ellipse(W / 2, H - 8, 18, 4, 0, 0, Math.PI * 2); ctx.fill();
+
+    if (heading === 'se') {
+      rect(ctx, 6, 16, 22, 16, container);
+      rect(ctx, 6, 16, 22, 2, containerD);
+      pixel(ctx, 18, 24, containerD); pixel(ctx, 22, 24, containerD); // Container-Linien
+      rect(ctx, 28, 18, 12, 14, cabin);
+      rect(ctx, 30, 20, 8, 5, window_);
+      rect(ctx, 10, 32, 4, 3, wheel);
+      rect(ctx, 22, 32, 4, 3, wheel);
+      rect(ctx, 32, 32, 4, 3, wheel);
+    } else if (heading === 'nw') {
+      rect(ctx, 8, 18, 12, 14, cabin);
+      rect(ctx, 10, 20, 8, 5, window_);
+      rect(ctx, 20, 16, 22, 16, container);
+      rect(ctx, 20, 16, 22, 2, containerD);
+      rect(ctx, 12, 32, 4, 3, wheel);
+      rect(ctx, 26, 32, 4, 3, wheel);
+      rect(ctx, 36, 32, 4, 3, wheel);
+    } else if (heading === 'sw') {
+      rect(ctx, 14, 6, 14, 22, container);
+      rect(ctx, 14, 6, 2, 22, containerD);
+      rect(ctx, 12, 28, 16, 8, cabin);
+      rect(ctx, 14, 30, 6, 4, window_);
+      rect(ctx, 14, 36, 4, 3, wheel);
+      rect(ctx, 24, 36, 4, 3, wheel);
+    } else {
+      rect(ctx, 12, 8, 16, 8, cabin);
+      rect(ctx, 20, 10, 6, 4, window_);
+      rect(ctx, 14, 16, 14, 22, container);
+      rect(ctx, 14, 16, 2, 22, containerD);
+      rect(ctx, 14, 36, 4, 3, wheel);
+      rect(ctx, 24, 36, 4, 3, wheel);
+    }
+    return c;
+  }
+
+  // --------------------------------------------------------------
+  // Stil D: Kompakter Lieferwagen (Van)
+  // --------------------------------------------------------------
+  function renderVan(heading) {
+    const c = makeCanvas();
+    const ctx = c.getContext('2d');
+    const body = '#e8e8eb';
+    const bodyD = '#b8b8bb';
+    const window_ = '#3a4a5a';
+    const wheel = '#1a1a1a';
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath(); ctx.ellipse(W / 2, H - 8, 14, 3, 0, 0, Math.PI * 2); ctx.fill();
+
+    if (heading === 'se') {
+      rect(ctx, 12, 18, 24, 14, body);
+      rect(ctx, 12, 18, 24, 2, bodyD);
+      rect(ctx, 28, 20, 8, 5, window_);
+      rect(ctx, 14, 32, 4, 3, wheel);
+      rect(ctx, 30, 32, 4, 3, wheel);
+    } else if (heading === 'nw') {
+      rect(ctx, 12, 18, 24, 14, body);
+      rect(ctx, 12, 18, 24, 2, bodyD);
+      rect(ctx, 12, 20, 8, 5, window_);
+      rect(ctx, 14, 32, 4, 3, wheel);
+      rect(ctx, 30, 32, 4, 3, wheel);
+    } else if (heading === 'sw') {
+      rect(ctx, 14, 12, 16, 24, body);
+      rect(ctx, 14, 12, 2, 24, bodyD);
+      rect(ctx, 16, 28, 6, 5, window_);
+      rect(ctx, 14, 36, 4, 3, wheel);
+      rect(ctx, 24, 36, 4, 3, wheel);
+    } else {
+      rect(ctx, 14, 12, 16, 24, body);
+      rect(ctx, 14, 12, 2, 24, bodyD);
+      rect(ctx, 22, 14, 6, 5, window_);
+      rect(ctx, 14, 36, 4, 3, wheel);
+      rect(ctx, 24, 36, 4, 3, wheel);
+    }
+    return c;
+  }
+
+  const truckStyles = {
+    A: { name: 'Box-Truck',         desc: 'Klassischer Cargo-LKW mit fester Box hinter der Kabine. Aktueller Stil im Spiel.', render: renderBoxTruck },
+    B: { name: 'Pickup',            desc: 'Kompakter Pickup mit offener Ladefläche. Rot, sportlich.',                     render: renderPickup },
+    C: { name: 'Container-Truck',   desc: 'Großer LKW mit aufgesetztem Container. Mehr Volumen, dreht-Drehgestell-Optik.', render: renderContainerTruck },
+    D: { name: 'Lieferwagen (Van)', desc: 'Kompakter weißer Van. Stadtlieferung, klein und wendig.',                     render: renderVan },
+  };
+
+  const STORAGE_KEY = 'cargora-truck-mockup';
+  const state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+
+  function init() {
+    const grid = document.getElementById('truck-grid');
+    Object.entries(truckStyles).forEach(([key, style]) => {
+      const div = document.createElement('div');
+      div.className = 'variant';
+      if (state.style === key) div.classList.add('selected');
+      div.innerHTML = `
+        <div class="preview">
+          <div class="preview-cell"><span class="heading-label">→ rechts-unten</span></div>
+          <div class="preview-cell"><span class="heading-label">← links-oben</span></div>
+          <div class="preview-cell"><span class="heading-label">↙ links-unten</span></div>
+          <div class="preview-cell"><span class="heading-label">↗ rechts-oben</span></div>
+        </div>
+        <div class="v-name">Variante ${key}: ${style.name}</div>
+        <div class="v-desc">${style.desc}</div>
+      `;
+      const cells = div.querySelectorAll('.preview-cell');
+      cells[0].appendChild(style.render('se'));
+      cells[1].appendChild(style.render('nw'));
+      cells[2].appendChild(style.render('sw'));
+      cells[3].appendChild(style.render('ne'));
+      div.addEventListener('click', () => {
+        document.querySelectorAll('.variant').forEach(v => v.classList.remove('selected'));
+        div.classList.add('selected');
+        state.style = key;
+        save();
+      });
+      grid.appendChild(div);
+    });
+    document.getElementById('notes').value = state.notes || '';
+    document.getElementById('notes').addEventListener('input', e => {
+      state.notes = e.target.value;
+      save();
+    });
+    save();
+  }
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (state.style) {
+      const name = truckStyles[state.style].name;
+      document.getElementById('status').textContent = `Variante ${state.style}: ${name}`;
+      document.getElementById('export-btn').disabled = false;
+    } else {
+      document.getElementById('status').textContent = 'Kein LKW ausgewählt';
+      document.getElementById('export-btn').disabled = true;
+    }
+  }
+
+  function buildExport() {
+    const lines = [
+      '# Cargora LKW-Mockup — Auswahl',
+      '',
+      'Datum: ' + new Date().toISOString().slice(0, 10),
+      '',
+      `- **LKW-Stil:** Variante ${state.style} (${truckStyles[state.style]?.name})`,
+      `- **Heading-System:** 4 Richtungen (rechts-unten, links-oben, links-unten, rechts-oben)`,
+      `- **LKW dreht sich automatisch** in Fahrtrichtung beim Pathfinding-Schritt`,
+    ];
+    if (state.notes && state.notes.trim()) {
+      lines.push('', '## Anmerkungen', '', state.notes.trim());
+    }
+    return lines.join('\n');
+  }
+
+  document.getElementById('export-btn').addEventListener('click', () => {
+    document.getElementById('export-text').textContent = buildExport();
+    document.getElementById('modal').classList.add('show');
+  });
+  document.getElementById('close-btn').addEventListener('click', () => {
+    document.getElementById('modal').classList.remove('show');
+  });
+  document.getElementById('copy-btn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(document.getElementById('export-text').textContent);
+      document.getElementById('copy-btn').textContent = 'Kopiert ✓';
+      setTimeout(() => { document.getElementById('copy-btn').textContent = 'In Zwischenablage'; }, 1500);
+    } catch (e) { alert('Manuell kopieren'); }
+  });
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    if (confirm('Auswahl zurücksetzen?')) {
+      Object.keys(state).forEach(k => delete state[k]);
+      localStorage.removeItem(STORAGE_KEY);
+      document.querySelectorAll('.variant.selected').forEach(v => v.classList.remove('selected'));
+      document.getElementById('notes').value = '';
+      save();
+    }
+  });
+
+  init();
+</script>
+</body>
+</html>
